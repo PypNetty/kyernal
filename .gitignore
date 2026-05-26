@@ -1,0 +1,59 @@
+# ==========================================
+# ⚙️ LOGS & SYSTÈME (GÉNÉRAL)
+# ==========================================
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
+# Cache et compétences des agents de code IA
+.agents/
+
+# ==========================================
+# 🐹 BACKEND (GO & ARCHITECTURE CLIXY)
+# ==========================================
+# Les binaires compilés
+/klixy-backend/bin/
+/klixy-backend/dist/
+*.exe
+*.exe_*
+*.dll
+*.so
+*.dylib
+
+# Outils de dev Go
+/klixy-backend/.golangci-lint.yml
+
+# ==========================================
+# 📦 FRONTEND (PNPM / RSBUILD / RUST)
+# ==========================================
+# Le magasin de dépendances local
+**/node_modules/
+.pnpm-debug.log
+
+# Les fichiers de build final (Statiques pour Caddy)
+/klixy-front/dist/
+
+# Le cache de Rspack/Rsbuild (Compilateur Rust)
+/klixy-front/.rsbuild/
+
+# Outils de Lint / Formatage local
+/klixy-front/.eslintcache
+/klixy-front/.prettiercache
+
+# ==========================================
+# 🤖 AGENTS IA & EDITEURS
+# ==========================================
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Optionnel : Si tu veux garder les "Agent Skills" partagés sur Git,
+# ne filtre pas le dossier .agents/. Si tu veux qu'ils restent locaux,
+# décommente la ligne ci-dessous :
+# .agents/
