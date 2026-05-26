@@ -21,7 +21,6 @@ func TestVersion(t *testing.T) {
 func TestCloneVM(t *testing.T) {
 	godotenv.Load("../../.env")
 	c := NewClient()
-
 	taskID, err := c.CloneVM(200, "test-klixy-poc")
 	if err != nil {
 		t.Fatalf("failed to clone VM: %v", err)
@@ -32,7 +31,6 @@ func TestCloneVM(t *testing.T) {
 func TestStartVM(t *testing.T) {
 	godotenv.Load("../../.env")
 	c := NewClient()
-
 	err := c.StartVM(200)
 	if err != nil {
 		t.Fatalf("failed to start VM: %v", err)
@@ -43,13 +41,27 @@ func TestStartVM(t *testing.T) {
 func TestGetVMIP(t *testing.T) {
 	godotenv.Load("../../.env")
 	c := NewClient()
-
-	// Attendre que la VM démarre
 	time.Sleep(30 * time.Second)
-
 	ip, err := c.GetVMIP(200)
 	if err != nil {
 		t.Fatalf("failed to get VM IP: %v", err)
 	}
 	t.Logf("VM 200 IP: %s", ip)
+}
+
+func TestDeleteVM(t *testing.T) {
+	godotenv.Load("../../.env")
+	c := NewClient()
+
+	// Force stop
+	c.request("POST", fmt.Sprintf("/nodes/%s/qemu/200/status/stop", c.node), map[string]any{"forceStop": 1})
+	
+	// Attendre l'arrêt complet
+	time.Sleep(5 * time.Second)
+
+	err := c.DeleteVM(200)
+	if err != nil {
+		t.Fatalf("failed to delete VM: %v", err)
+	}
+	t.Log("VM 200 deleted")
 }
