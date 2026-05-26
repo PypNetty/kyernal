@@ -1,4 +1,4 @@
-module github.com/PypNetty/kylabz
+module github.com/PypNetty/klixy
 
 go 1.26.1
 
