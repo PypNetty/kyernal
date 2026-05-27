@@ -92,7 +92,7 @@ const IconBtn = ({
   );
 };
 
-// --- CONTEXT GLOBAL (dark mode + VM state partagés) ---
+// --- CONTEXTE GLOBAL UNIQUE ---
 export interface LayoutContext {
   dark: boolean;
   vertical: boolean;
@@ -102,6 +102,10 @@ export interface LayoutContext {
   startSession: (incidentId: string) => Promise<void>;
   stopSession: () => Promise<void>;
   deleteSession: () => Promise<void>;
+  showTerminal: boolean;
+  setShowTerminal: (val: boolean) => void;
+  showTicket: boolean;
+  setShowTicket: (val: boolean) => void;
 }
 
 export const LayoutCtx = React.createContext<LayoutContext>({} as LayoutContext);
@@ -113,6 +117,9 @@ export default function Layout() {
   const [vmId, setVmId] = useState<number | undefined>(undefined);
   const [loading, setLoading] = useState(false);
 
+  const [showTerminal, setShowTerminal] = useState(true);
+  const [showTicket, setShowTicket] = useState(true);
+
   const currentUser: UserProfile = {
     name: 'Henryck Paris',
     initials: 'HP',
@@ -122,6 +129,7 @@ export default function Layout() {
   const border = dark ? '#1f1f1f' : '#e8e8e5';
   const bg = dark ? '#0c0c0d' : '#fafaf9';
   const text = dark ? '#ededed' : '#0f0f0f';
+  const textMuted = dark ? '#8a8a93' : '#6b6b6b';
 
   const startSession = async (incidentId: string) => {
     setLoading(true);
@@ -165,6 +173,7 @@ export default function Layout() {
   const ctx: LayoutContext = {
     dark, vertical, vmHost, vmId, loading,
     startSession, stopSession, deleteSession,
+    showTerminal, setShowTerminal, showTicket, setShowTicket
   };
 
   return (
@@ -193,7 +202,35 @@ export default function Layout() {
           <div style={{ fontSize: '12px', fontWeight: 500, color: text }}>
             Klixy Arena
           </div>
+          
           <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+            <button
+              onClick={() => setShowTicket(!showTicket)}
+              style={{
+                height: '22px', padding: '0 8px', borderRadius: '4px', marginRight: '4px',
+                border: `1px solid ${showTicket ? (dark ? '#4d8fff44' : '#0055e544') : border}`,
+                background: showTicket ? (dark ? 'rgba(77,143,255,0.1)' : 'rgba(0,85,229,0.06)') : 'transparent',
+                color: showTicket ? (dark ? '#4d8fff' : '#0055e5') : textMuted,
+                fontSize: '11px', fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s'
+              }}
+            >
+              Ticket
+            </button>
+            <button
+              onClick={() => setShowTerminal(!showTerminal)}
+              style={{
+                height: '22px', padding: '0 8px', borderRadius: '4px', marginRight: '8px',
+                border: `1px solid ${showTerminal ? (dark ? '#4d8fff44' : '#0055e544') : border}`,
+                background: showTerminal ? (dark ? 'rgba(77,143,255,0.1)' : 'rgba(0,85,229,0.06)') : 'transparent',
+                color: showTerminal ? (dark ? '#4d8fff' : '#0055e5') : textMuted,
+                fontSize: '11px', fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s'
+              }}
+            >
+              Terminal
+            </button>
+
+            <div style={{ width: '1px', height: '14px', background: border, marginRight: '6px' }} />
+
             {vmHost && (
               <>
                 <IconBtn onClick={stopSession} title="Stopper la session" dark={dark}>
