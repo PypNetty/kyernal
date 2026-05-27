@@ -3,7 +3,6 @@ import {
   createRoute,
   createRootRoute,
   redirect,
-  Outlet,
 } from '@tanstack/react-router';
 import React, { useContext } from 'react';
 import { Allotment } from 'allotment';
@@ -16,112 +15,15 @@ import RetourPanel from './RetourPanel';
 import ActivitePanel from './ActivitePanel';
 import CompetencePanel from './CompetencePanel';
 import ProjetsPanel from './ProjetsPanel';
-import DocsPanel from './DocsPanel';
+import RessourcesPanel from './RessourcesPanel';
 import StatistiquesPanel from './StatistiquesPanel';
+import SkillTreePanel from './SkillTreePanel';
+import DocsPanel from './DocsPanel';
+import CompetencesPanel from './CompetencesPanel';
 import TicketPanel from './TicketPanel';
 import TerminalPanel from './TerminalPanel';
-import Landing from '../Landing/Landing';
-import Login from '../Auth/Login';
 
-// ─── NOUVEAU COMPOSANT : LE MANUEL / COURS (OBSIDIAN LIKE) ─────────────────
-function CoursePanel({
-  dark,
-  onDragStart,
-  onDrop,
-  isDraggedOver,
-  onDragOver,
-}: any) {
-  return (
-    <div
-      draggable
-      onDragStart={(e) => onDragStart(e, 'course')}
-      onDrop={(e) => onDrop(e, 'course')}
-      onDragOver={onDragOver}
-      style={{
-        height: '100%',
-        background: dark ? '#09090b' : '#fafafa',
-        color: dark ? '#f4f4f5' : '#09090b',
-        border: isDraggedOver ? `2px dashed #0055e5` : 'none',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <div
-        style={{
-          height: '36px',
-          borderBottom: `1px solid ${dark ? '#1c1c1e' : '#e4e4e7'}`,
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 12px',
-          fontSize: '11px',
-          fontWeight: 600,
-          color: dark ? '#71717a' : '#a1a1aa',
-          cursor: 'grab',
-          flexShrink: 0,
-        }}
-      >
-        📖 MANUEL TECHNIQUE — APACHE VHOSTS
-      </div>
-
-      <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
-        <h1
-          style={{
-            fontSize: '20px',
-            fontWeight: 600,
-            marginBottom: '16px',
-            letterSpacing: '-0.5px',
-          }}
-        >
-          Configurer un Virtual Host Apache
-        </h1>
-        <p
-          style={{
-            fontSize: '13px',
-            lineHeight: 1.6,
-            color: dark ? '#a1a1aa' : '#52525b',
-            marginBottom: '16px',
-          }}
-        >
-          Un <strong>Virtual Host</strong> (hôte virtuel) permet à un seul
-          serveur Apache d'héberger plusieurs sites web différents en se basant
-          sur le nom de domaine demandé par le client.
-        </p>
-        <h3
-          style={{
-            fontSize: '13px',
-            fontWeight: 600,
-            marginTop: '24px',
-            marginBottom: '8px',
-          }}
-        >
-          Exemple de configuration standard :
-        </h3>
-        <pre
-          style={{
-            background: dark ? '#141416' : '#f4f4f5',
-            border: `1px solid ${dark ? '#27272a' : '#e4e4e7'}`,
-            padding: '16px',
-            borderRadius: '6px',
-            fontSize: '12px',
-            fontFamily: 'JetBrains Mono, monospace',
-            overflowX: 'auto',
-            color: dark ? '#e4e4e7' : '#27272a',
-          }}
-        >
-          {`<VirtualHost *:80>
-    ServerName www.monsite.fr
-    DocumentRoot /var/www/monsite
-    
-    ErrorLog \${APACHE_LOG_DIR}/error.log
-    CustomLog \${APACHE_LOG_DIR}/access.log combined
-</VirtualHost>`}
-        </pre>
-      </div>
-    </div>
-  );
-}
-
-// ─── PAGES TECHNIQUES ───────────────────────────────────────────────────────
+// ─── PAGES ──────────────────────────────────────────────────────────────────
 
 function InboxPage() {
   const { dark } = useContext(LayoutCtx);
@@ -133,52 +35,23 @@ function MyTicketsPage() {
 }
 
 function TicketDetailPage() {
-  const {
-    dark,
-    vmHost,
-    loading,
-    startSession,
-    vertical,
-    showTerminal,
-    showTicket,
-    showCourse,
-  } = useContext(LayoutCtx);
+  const { incidentId } = ticketDetailRoute.useParams();
+  const { dark, vmHost, loading, startSession, vertical } =
+    useContext(LayoutCtx);
 
   const [draggedOver, setDraggedOver] = React.useState<
-    'term' | 'ticket' | 'course' | null
+    'term' | 'ticket' | null
   >(null);
-  const [panelOrder, setPanelOrder] = React.useState<
-    ('term' | 'ticket' | 'course')[]
-  >(['ticket', 'course', 'term']);
+  const [reverseOrder, setReverseOrder] = React.useState(false);
 
-  const handleDragStart = (
-    e: React.DragEvent,
-    type: 'term' | 'ticket' | 'course',
-  ) => {
+  const handleDragStart = (e: React.DragEvent, type: 'term' | 'ticket') => {
     e.dataTransfer.setData('text/plain', type);
   };
-
-  const handleDrop = (
-    e: React.DragEvent,
-    target: 'term' | 'ticket' | 'course',
-  ) => {
+  const handleDrop = (e: React.DragEvent, target: 'term' | 'ticket') => {
     e.preventDefault();
     setDraggedOver(null);
-    const source = e.dataTransfer.getData('text/plain') as
-      | 'term'
-      | 'ticket'
-      | 'course';
-
-    if (source && source !== target) {
-      setPanelOrder((prevOrder) => {
-        const newOrder = [...prevOrder];
-        const sourceIdx = newOrder.indexOf(source);
-        const targetIdx = newOrder.indexOf(target);
-        newOrder[sourceIdx] = target;
-        newOrder[targetIdx] = source;
-        return newOrder;
-      });
-    }
+    const source = e.dataTransfer.getData('text/plain') as 'term' | 'ticket';
+    if (source && source !== target) setReverseOrder((r) => !r);
   };
 
   const panelProps = {
@@ -188,93 +61,57 @@ function TicketDetailPage() {
     onDrop: handleDrop,
   };
 
-  const visiblePanels = panelOrder.filter((panelKey) => {
-    if (panelKey === 'term') return showTerminal;
-    if (panelKey === 'ticket') return showTicket;
-    if (panelKey === 'course') return showCourse;
-    return true;
-  });
-
-  if (visiblePanels.length === 0) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          height: '100%',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          gap: '4px',
-          color: dark ? '#71717a' : '#a1a1aa',
-          fontSize: '12px',
-          background: dark ? '#09090b' : '#fafafa',
-          fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-        }}
-      >
-        <span style={{ fontWeight: 500, color: dark ? '#f4f4f5' : '#09090b' }}>
-          Espace de travail vide
-        </span>
-        <span style={{ opacity: 0.6 }}>
-          Activez un volet depuis la barre supérieure.
-        </span>
-      </div>
-    );
-  }
+  const termPanel = (
+    <TerminalPanel
+      {...panelProps}
+      isDraggedOver={draggedOver === 'term'}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDraggedOver('term');
+      }}
+    />
+  );
+  const ticketPanel = (
+    <TicketPanel
+      {...panelProps}
+      isDraggedOver={draggedOver === 'ticket'}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDraggedOver('ticket');
+      }}
+      onStartSession={startSession}
+      loading={loading}
+    />
+  );
 
   return (
     <div style={{ height: '100%' }} onDragLeave={() => setDraggedOver(null)}>
-      <Allotment
-        key={`${vertical}-${visiblePanels.join('-')}`}
-        vertical={vertical}
-      >
-        {visiblePanels.map((panelKey) => {
-          if (panelKey === 'term') {
-            return (
-              <Allotment.Pane minSize={200} key="term">
-                <TerminalPanel
-                  {...panelProps}
-                  isDraggedOver={draggedOver === 'term'}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDraggedOver('term');
-                  }}
-                />
-              </Allotment.Pane>
-            );
-          }
-          if (panelKey === 'ticket') {
-            return (
-              <Allotment.Pane minSize={200} key="ticket">
-                <TicketPanel
-                  {...panelProps}
-                  isDraggedOver={draggedOver === 'ticket'}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDraggedOver('ticket');
-                  }}
-                  onStartSession={startSession}
-                  loading={loading}
-                />
-              </Allotment.Pane>
-            );
-          }
-          if (panelKey === 'course') {
-            return (
-              <Allotment.Pane minSize={200} key="course">
-                <CoursePanel
-                  {...panelProps}
-                  isDraggedOver={draggedOver === 'course'}
-                  onDragOver={(e: React.DragEvent) => {
-                    e.preventDefault();
-                    setDraggedOver('course');
-                  }}
-                />
-              </Allotment.Pane>
-            );
-          }
-          return null;
-        })}
+      <Allotment key={`${vertical}-${reverseOrder}`} vertical={vertical}>
+        <Allotment.Pane minSize={200}>
+          {reverseOrder ? ticketPanel : termPanel}
+        </Allotment.Pane>
+        <Allotment.Pane minSize={200}>
+          {reverseOrder ? termPanel : ticketPanel}
+        </Allotment.Pane>
       </Allotment>
+    </div>
+  );
+}
+
+function PlaceholderPage({ name }: { name: string }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#8a8a93',
+        fontSize: '13px',
+        fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif',
+      }}
+    >
+      {name} — à venir
     </div>
   );
 }
@@ -286,7 +123,7 @@ function ActivitePage() {
   return <ActivitePanel />;
 }
 function CompetencePage() {
-  return <CompetencePanel />;
+  return <SkillTreePanel />;
 }
 function ProjetsPage() {
   return <ProjetsPanel />;
@@ -297,100 +134,85 @@ function RessourcePage() {
 function StatistiquePage() {
   return <StatistiquesPanel />;
 }
+function AutonomiePage() {
+  return <PlaceholderPage name="Score d'autonomie" />;
+}
 
-// ─── DEFINITION DES ROUTES — STRUCTURE INVERSÉE ──────────────────────────────
+// ─── ROUTES ─────────────────────────────────────────────────────────────────
 
-// Root vide : Pas de layout global imposé
-const rootRoute = createRootRoute({
-  component: () => <Outlet />,
-});
+const rootRoute = createRootRoute({ component: Layout });
 
-// Routes Publiques (Plein écran)
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: Landing,
-});
-const loginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/login',
-  component: Login,
+  beforeLoad: () => {
+    throw redirect({ to: '/inbox' });
+  },
 });
 
-// Route Pivot App : Elle charge ton composant "Layout.tsx" (Sidebar + TopBar)
-const appLayoutRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  id: 'app',
-  component: Layout,
-});
-
-// Routes Privées (Enfants de appLayoutRoute)
 const inboxRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
+  getParentRoute: () => rootRoute,
   path: '/inbox',
   component: InboxPage,
 });
 const ticketsRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
+  getParentRoute: () => rootRoute,
   path: '/tickets',
   component: MyTicketsPage,
 });
 const ticketDetailRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
+  getParentRoute: () => rootRoute,
   path: '/tickets/$incidentId',
   component: TicketDetailPage,
 });
 const reviewsRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
+  getParentRoute: () => rootRoute,
   path: '/retours',
   component: RetourPage,
 });
 const pulseRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
+  getParentRoute: () => rootRoute,
   path: '/activite',
   component: ActivitePage,
 });
 const skillsRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
+  getParentRoute: () => rootRoute,
   path: '/competences',
   component: CompetencePage,
 });
 const projectsRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
+  getParentRoute: () => rootRoute,
   path: '/projets',
   component: ProjetsPage,
 });
 const docsRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
+  getParentRoute: () => rootRoute,
   path: '/ressources',
   component: RessourcePage,
 });
 const insightsRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
+  getParentRoute: () => rootRoute,
   path: '/statistiques',
   component: StatistiquePage,
 });
 const autonomyRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
+  getParentRoute: () => rootRoute,
   path: '/autonomie',
-  component: () => <InboxPanel dark={true} />,
+  component: AutonomiePage,
 });
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  loginRoute,
-  appLayoutRoute.addChildren([
-    inboxRoute,
-    ticketsRoute,
-    ticketDetailRoute,
-    reviewsRoute,
-    pulseRoute,
-    skillsRoute,
-    projectsRoute,
-    docsRoute,
-    insightsRoute,
-    autonomyRoute,
-  ]),
+  inboxRoute,
+  ticketsRoute,
+  ticketDetailRoute,
+  reviewsRoute,
+  pulseRoute,
+  skillsRoute,
+  projectsRoute,
+  docsRoute,
+  insightsRoute,
+  autonomyRoute,
 ]);
 
 export const router = createRouter({ routeTree });
