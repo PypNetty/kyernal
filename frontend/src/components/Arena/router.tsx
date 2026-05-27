@@ -17,11 +17,10 @@ import CompetencePanel from './CompetencePanel';
 import ProjetsPanel from './ProjetsPanel';
 import RessourcesPanel from './RessourcesPanel';
 import StatistiquesPanel from './StatistiquesPanel';
-import CompetencesPanel from './CompetencesPanel';
 import TicketPanel from './TicketPanel';
 import TerminalPanel from './TerminalPanel';
 
-// ─── PAGES ──────────────────────────────────────────────────────────────────
+// ─── PAGES UNIQUE ──────────────────────────────────────────────────────────
 
 function InboxPage() {
   const { dark } = useContext(LayoutCtx);
@@ -34,22 +33,43 @@ function MyTicketsPage() {
 
 function TicketDetailPage() {
   const { incidentId } = ticketDetailRoute.useParams();
-  const { dark, vmHost, loading, startSession, vertical } =
-    useContext(LayoutCtx);
+  const {
+    dark,
+    vmHost,
+    loading,
+    startSession,
+    vertical,
+    showTerminal,
+    showTicket,
+  } = useContext(LayoutCtx);
 
   const [draggedOver, setDraggedOver] = React.useState<
     'term' | 'ticket' | null
   >(null);
-  const [reverseOrder, setReverseOrder] = React.useState(false);
+  const [panelOrder, setPanelOrder] = React.useState<('term' | 'ticket')[]>([
+    'term',
+    'ticket',
+  ]);
 
   const handleDragStart = (e: React.DragEvent, type: 'term' | 'ticket') => {
     e.dataTransfer.setData('text/plain', type);
   };
+
   const handleDrop = (e: React.DragEvent, target: 'term' | 'ticket') => {
     e.preventDefault();
     setDraggedOver(null);
     const source = e.dataTransfer.getData('text/plain') as 'term' | 'ticket';
-    if (source && source !== target) setReverseOrder((r) => !r);
+
+    if (source && source !== target) {
+      setPanelOrder((prevOrder) => {
+        const newOrder = [...prevOrder];
+        const sourceIdx = newOrder.indexOf(source);
+        const targetIdx = newOrder.indexOf(target);
+        newOrder[sourceIdx] = target;
+        newOrder[targetIdx] = source;
+        return newOrder;
+      });
+    }
   };
 
   const panelProps = {
@@ -59,38 +79,77 @@ function TicketDetailPage() {
     onDrop: handleDrop,
   };
 
-  const termPanel = (
-    <TerminalPanel
-      {...panelProps}
-      isDraggedOver={draggedOver === 'term'}
-      onDragOver={(e) => {
-        e.preventDefault();
-        setDraggedOver('term');
-      }}
-    />
-  );
-  const ticketPanel = (
-    <TicketPanel
-      {...panelProps}
-      isDraggedOver={draggedOver === 'ticket'}
-      onDragOver={(e) => {
-        e.preventDefault();
-        setDraggedOver('ticket');
-      }}
-      onStartSession={startSession}
-      loading={loading}
-    />
-  );
+  const visiblePanels = panelOrder.filter((panelKey) => {
+    if (panelKey === 'term') return showTerminal;
+    if (panelKey === 'ticket') return showTicket;
+    return true;
+  });
+
+  if (visiblePanels.length === 0) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          height: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          gap: '6px',
+          color: dark ? '#8a8a93' : '#6b6b6b',
+          fontSize: '13px',
+          background: dark ? '#0c0c0d' : '#fafaf9',
+          fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif',
+        }}
+      >
+        <span style={{ fontWeight: 500, color: dark ? '#ededed' : '#111113' }}>
+          Espace de travail vide
+        </span>
+        <span style={{ fontSize: '11px', opacity: 0.7 }}>
+          Activez le Ticket ou le Terminal depuis la barre supérieure.
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div style={{ height: '100%' }} onDragLeave={() => setDraggedOver(null)}>
-      <Allotment key={`${vertical}-${reverseOrder}`} vertical={vertical}>
-        <Allotment.Pane minSize={200}>
-          {reverseOrder ? ticketPanel : termPanel}
-        </Allotment.Pane>
-        <Allotment.Pane minSize={200}>
-          {reverseOrder ? termPanel : ticketPanel}
-        </Allotment.Pane>
+      <Allotment
+        key={`${vertical}-${visiblePanels.join('-')}`}
+        vertical={vertical}
+      >
+        {visiblePanels.map((panelKey) => {
+          if (panelKey === 'term') {
+            return (
+              <Allotment.Pane minSize={200} key="term">
+                <TerminalPanel
+                  {...panelProps}
+                  isDraggedOver={draggedOver === 'term'}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDraggedOver('term');
+                  }}
+                />
+              </Allotment.Pane>
+            );
+          }
+          if (panelKey === 'ticket') {
+            return (
+              <Allotment.Pane minSize={200} key="ticket">
+                <TicketPanel
+                  {...panelProps}
+                  isDraggedOver={draggedOver === 'ticket'}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDraggedOver('ticket');
+                  }}
+                  onStartSession={startSession}
+                  loading={loading}
+                />
+              </Allotment.Pane>
+            );
+          }
+          return null;
+        })}
       </Allotment>
     </div>
   );
