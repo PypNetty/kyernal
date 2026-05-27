@@ -3,8 +3,10 @@ package proxmox
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type CloneRequest struct {
@@ -95,9 +97,9 @@ func (c *Client) GetVMIP(vmID int) (string, error) {
 	var result struct {
 		Data struct {
 			Result []struct {
-				Name            string `json:"name"`
-				IPAddresses     []struct {
-					IPAddress string `json:"ip-address"`
+				Name        string `json:"name"`
+				IPAddresses []struct {
+					IPAddress     string `json:"ip-address"`
 					IPAddressType string `json:"ip-address-type"`
 				} `json:"ip-addresses"`
 			} `json:"result"`
@@ -118,4 +120,14 @@ func (c *Client) GetVMIP(vmID int) (string, error) {
 	}
 
 	return "", fmt.Errorf("no IPv4 address found for VM %d", vmID)
+}
+
+func (c *Client) SetSSHKey(vmID int, pubKey string) error {
+	path := fmt.Sprintf("/nodes/%s/qemu/%d/config", c.node, vmID)
+	// Proxmox requires percent-encoding with %20 for spaces, not + (QueryEscape default)
+	encoded := strings.ReplaceAll(url.QueryEscape(strings.TrimSpace(pubKey)), "+", "%20")
+	_, err := c.request("POST", path, map[string]any{
+		"sshkeys": encoded,
+	})
+	return err
 }
