@@ -12,6 +12,9 @@ import Layout, { LayoutCtx } from './Layout';
 import InboxPanel from './InboxPanel';
 import MyTickets from './MyTickets';
 import RetourPanel from './RetourPanel';
+import ActivitePanel from './ActivitePanel';
+import CompetencePanel from './CompetencePanel';
+import CompetencesPanel from './CompetencesPanel';
 import TicketPanel from './TicketPanel';
 import TerminalPanel from './TerminalPanel';
 
@@ -112,10 +115,10 @@ function RetourPage() {
   return <RetourPanel />;
 }
 function ActivitePage() {
-  return <PlaceholderPage name="Activité" />;
+  return <ActivitePanel />;
 }
 function CompetencePage() {
-  return <PlaceholderPage name="Compétences" />;
+  return <CompetencePanel />;
 }
 function ProjetsPage() {
   return <PlaceholderPage name="Projets" />;
