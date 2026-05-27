@@ -53,9 +53,9 @@ func TestDeleteVM(t *testing.T) {
 	godotenv.Load("../../.env")
 	c := NewClient()
 
-	// Force stop
-	c.request("POST", fmt.Sprintf("/nodes/%s/qemu/200/status/stop", c.node), map[string]any{"forceStop": 1})
-	
+	// Force stop avec la méthode Request mise à jour
+	c.Request("POST", fmt.Sprintf("/nodes/%s/qemu/200/status/stop", c.node), map[string]any{"forceStop": 1})
+
 	// Attendre l'arrêt complet
 	time.Sleep(5 * time.Second)
 
