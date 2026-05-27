@@ -20,3 +20,9 @@ export interface TicketData {
   severity: 'Critique' | 'Moyen' | 'Mineur';
   objectives: { text: string; done: boolean; active: boolean }[];
 }
+
+export interface UserProfile {
+  name: string;
+  initials: string;
+  role: string;
+}

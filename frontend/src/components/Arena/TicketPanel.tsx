@@ -57,6 +57,7 @@ export default function TicketPanel({ dark, vmHost, onDragStart, onDragOver, onD
     );
   }
 
+
   return (
     <div onDragOver={onDragOver} onDrop={(e) => onDrop(e, 'ticket')} style={{ height: '100%', display: 'flex', flexDirection: 'column', background: bg2, outline: isDraggedOver ? '2px dashed #0066ff' : 'none' }}>
        <div style={{ height: '36px', display: 'flex', alignItems: 'center', padding: '0 16px', borderBottom: `1px solid ${border}`, background: bg }}>
