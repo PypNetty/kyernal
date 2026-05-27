@@ -3,6 +3,7 @@ import {
   createRoute,
   createRootRoute,
   redirect,
+  Outlet,
 } from '@tanstack/react-router';
 import React, { useContext } from 'react';
 import { Allotment } from 'allotment';
@@ -19,8 +20,10 @@ import RessourcesPanel from './RessourcesPanel';
 import StatistiquesPanel from './StatistiquesPanel';
 import TicketPanel from './TicketPanel';
 import TerminalPanel from './TerminalPanel';
+import Landing from '../Landing/Landing';
+import Login from '../Auth/Login';
 
-// ─── PAGES UNIQUE ──────────────────────────────────────────────────────────
+// ─── PAGES TECHNIQUES ───────────────────────────────────────────────────────
 
 function InboxPage() {
   const { dark } = useContext(LayoutCtx);
@@ -32,7 +35,6 @@ function MyTicketsPage() {
 }
 
 function TicketDetailPage() {
-  const { incidentId } = ticketDetailRoute.useParams();
   const {
     dark,
     vmHost,
@@ -155,24 +157,6 @@ function TicketDetailPage() {
   );
 }
 
-function PlaceholderPage({ name }: { name: string }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        height: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#8a8a93',
-        fontSize: '13px',
-        fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif',
-      }}
-    >
-      {name} — à venir
-    </div>
-  );
-}
-
 function RetourPage() {
   return <RetourPanel />;
 }
@@ -191,85 +175,100 @@ function RessourcePage() {
 function StatistiquePage() {
   return <StatistiquesPanel />;
 }
-function AutonomiePage() {
-  return <PlaceholderPage name="Score d'autonomie" />;
-}
 
-// ─── ROUTES ─────────────────────────────────────────────────────────────────
+// ─── DEFINITION DES ROUTES — STRUCTURE INVERSÉE ──────────────────────────────
 
-const rootRoute = createRootRoute({ component: Layout });
+// Root vide : Pas de layout global imposé
+const rootRoute = createRootRoute({
+  component: () => <Outlet />,
+});
 
+// Routes Publiques (Plein écran)
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  beforeLoad: () => {
-    throw redirect({ to: '/inbox' });
-  },
+  component: Landing,
+});
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  component: Login,
 });
 
-const inboxRoute = createRoute({
+// Route Pivot App : Elle charge ton composant "Layout.tsx" (Sidebar + TopBar)
+const appLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
+  id: 'app',
+  component: Layout,
+});
+
+// Routes Privées (Enfants de appLayoutRoute)
+const inboxRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
   path: '/inbox',
   component: InboxPage,
 });
 const ticketsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/tickets',
   component: MyTicketsPage,
 });
 const ticketDetailRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/tickets/$incidentId',
   component: TicketDetailPage,
 });
 const reviewsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/retours',
   component: RetourPage,
 });
 const pulseRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/activite',
   component: ActivitePage,
 });
 const skillsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/competences',
   component: CompetencePage,
 });
 const projectsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/projets',
   component: ProjetsPage,
 });
 const docsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/ressources',
   component: RessourcePage,
 });
 const insightsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/statistiques',
   component: StatistiquePage,
 });
 const autonomyRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/autonomie',
-  component: AutonomiePage,
+  component: () => <InboxPanel dark={true} />,
 });
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  inboxRoute,
-  ticketsRoute,
-  ticketDetailRoute,
-  reviewsRoute,
-  pulseRoute,
-  skillsRoute,
-  projectsRoute,
-  docsRoute,
-  insightsRoute,
-  autonomyRoute,
+  loginRoute,
+  appLayoutRoute.addChildren([
+    inboxRoute,
+    ticketsRoute,
+    ticketDetailRoute,
+    reviewsRoute,
+    pulseRoute,
+    skillsRoute,
+    projectsRoute,
+    docsRoute,
+    insightsRoute,
+    autonomyRoute,
+  ]),
 ]);
 
 export const router = createRouter({ routeTree });
