@@ -6,21 +6,34 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Client struct {
-	host       string
-	tokenID    string
+	host        string
+	tokenID     string
 	tokenSecret string
-	node       string
-	httpClient *http.Client
+	node        string
+	httpClient  *http.Client
 }
 
 func NewClient() *Client {
+	host := os.Getenv("PROXMOX_HOST")
+	if host == "" {
+		// Sécurité si le .env n'a pas été lu au bon moment
+		log.Println("[WARN] PROXMOX_HOST est vide, tentative de rechargement du .env...")
+		_ = godotenv.Load() // Cherche un .env dans le répertoire courant
+		host = os.Getenv("PROXMOX_HOST")
+	}
+
+	log.Printf("[Proxmox Client] Initialisé avec l'hôte : %s", host)
+
 	return &Client{
-		host:        os.Getenv("PROXMOX_HOST"),
+		host:        host,
 		tokenID:     os.Getenv("PROXMOX_TOKEN_ID"),
 		tokenSecret: os.Getenv("PROXMOX_TOKEN_SECRET"),
 		node:        os.Getenv("PROXMOX_NODE"),
@@ -32,7 +45,8 @@ func NewClient() *Client {
 	}
 }
 
-func (c *Client) request(method, path string, body any) ([]byte, error) {
+// Request est maintenant exporté (Majuscule) pour faciliter les interactions inter-fichiers internes
+func (c *Client) Request(method, path string, body any) ([]byte, error) {
 	var bodyReader io.Reader
 	if body != nil {
 		data, err := json.Marshal(body)
@@ -70,7 +84,7 @@ func (c *Client) request(method, path string, body any) ([]byte, error) {
 }
 
 func (c *Client) Version() (map[string]any, error) {
-	data, err := c.request("GET", "/version", nil)
+	data, err := c.Request("GET", "/version", nil)
 	if err != nil {
 		return nil, err
 	}

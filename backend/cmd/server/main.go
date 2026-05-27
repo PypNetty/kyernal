@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/PypNetty/klixy/internal/proxmox"
@@ -23,7 +24,7 @@ type SessionResponse struct {
 func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS") // <-- DELETE ajouté ici
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
@@ -49,7 +50,14 @@ func startArena(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Injecter la clé SSH publique avant de démarrer
+	// 1. Injecter la configuration utilisateur générale
+	log.Printf("[Arena] Injecting core Cloud-Init configuration into VM %d...", vmID)
+	err = client.ConfigureCloudInit(vmID, "user=local:snippets/klixy-user-data.yaml")
+	if err != nil {
+		log.Printf("[Arena] ConfigureCloudInit warning: %v", err)
+	}
+
+	// 2. Injecter la clé SSH publique
 	home, _ := os.UserHomeDir()
 	if pubKeyBytes, err := os.ReadFile(home + "/.ssh/id_ed25519.pub"); err == nil {
 		if err := client.SetSSHKey(vmID, string(pubKeyBytes)); err != nil {
@@ -93,8 +101,55 @@ func startArena(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func stopArena(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	vmIDStr := r.URL.Query().Get("vmid")
+	vmID, _ := strconv.Atoi(vmIDStr)
+
+	if vmID == 0 {
+		http.Error(w, `{"error":"vmid manquant"}`, http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("[Arena] Stopping VM %d...", vmID)
+	client := proxmox.NewClient()
+	if err := client.StopVM(vmID); err != nil {
+		log.Printf("[Arena] Stop failed: %v", err)
+		http.Error(w, `{"error":"stop failed"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte(`{"status":"stopped"}`))
+}
+
+func deleteArena(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	vmIDStr := r.URL.Query().Get("vmid")
+	vmID, _ := strconv.Atoi(vmIDStr)
+
+	if vmID == 0 {
+		http.Error(w, `{"error":"vmid manquant"}`, http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("[Arena] Deleting VM %d...", vmID)
+	client := proxmox.NewClient()
+
+	// On demande un stop propre avant de supprimer (sinon Proxmox verrouille la suppression)
+	client.StopVM(vmID)
+	time.Sleep(3 * time.Second) // Petit délai de courtoisie pour l'arrêt
+
+	if err := client.DeleteVM(vmID); err != nil {
+		log.Printf("[Arena] Delete failed: %v", err)
+		http.Error(w, `{"error":"delete failed"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte(`{"status":"deleted"}`))
+}
+
 func main() {
-	godotenv.Load(".env")
+	godotenv.Overload(".env") // Overload pour s'assurer qu'on écrase le cache du terminal
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -103,6 +158,8 @@ func main() {
 
 	http.HandleFunc("/ws/pty", sshproxy.HandlePTY)
 	http.HandleFunc("/arena/start", corsMiddleware(startArena))
+	http.HandleFunc("/arena/stop", corsMiddleware(stopArena))     // <-- Route STOP
+	http.HandleFunc("/arena/delete", corsMiddleware(deleteArena)) // <-- Route DELETE
 	http.HandleFunc("/health", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, `{"status":"ok"}`)
 	}))
