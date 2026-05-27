@@ -14,6 +14,7 @@ import MyTickets from './MyTickets';
 import RetourPanel from './RetourPanel';
 import ActivitePanel from './ActivitePanel';
 import CompetencePanel from './CompetencePanel';
+import ProjetsPanel from './ProjetsPanel';
 import CompetencesPanel from './CompetencesPanel';
 import TicketPanel from './TicketPanel';
 import TerminalPanel from './TerminalPanel';
@@ -121,7 +122,7 @@ function CompetencePage() {
   return <CompetencePanel />;
 }
 function ProjetsPage() {
-  return <PlaceholderPage name="Projets" />;
+  return <ProjetsPanel />;
 }
 function RessourcePage() {
   return <PlaceholderPage name="Ressources" />;
