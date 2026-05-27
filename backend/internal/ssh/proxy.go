@@ -3,12 +3,13 @@ package ssh
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/gorilla/websocket"
-	"golang.org/x/crypto/ssh"
+	gossh "golang.org/x/crypto/ssh"
 )
 
 var upgrader = websocket.Upgrader{
@@ -16,25 +17,86 @@ var upgrader = websocket.Upgrader{
 }
 
 type PTYSession struct {
-	sshClient  *ssh.Client
-	sshSession *ssh.Session
+	sshClient  *gossh.Client
+	sshSession *gossh.Session
 	stdin      io.WriteCloser
 	stdout     io.Reader
 }
 
-func NewPTYSession(host, user, password string) (*PTYSession, error) {
-	config := &ssh.ClientConfig{
-		User: user,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(password),
-		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         10 * time.Second,
+func loadKey(path string) (gossh.AuthMethod, error) {
+	key, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	signer, err := gossh.ParsePrivateKey(key)
+	if err != nil {
+		return nil, err
+	}
+	return gossh.PublicKeys(signer), nil
+}
+
+func NewPTYSession(vmHost, user, _ string) (*PTYSession, error) {
+	bastionAddr := os.Getenv("PROXMOX_BASTION")
+	bastionUser := os.Getenv("PROXMOX_BASTION_USER")
+	keyPath := os.Getenv("SSH_KEY_PATH")
+
+	if keyPath == "" {
+		home, _ := os.UserHomeDir()
+		keyPath = home + "/.ssh/id_ed25519"
 	}
 
-	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:22", host), config)
+	log.Printf("[SSH] Connecting to %s via bastion %s as %s", vmHost, bastionAddr, user)
+
+	keyAuth, err := loadKey(keyPath)
 	if err != nil {
-		return nil, fmt.Errorf("ssh dial failed: %w", err)
+		return nil, fmt.Errorf("load key failed: %w", err)
+	}
+
+	var client *gossh.Client
+
+	if bastionAddr != "" && bastionUser != "" {
+		bastionConfig := &gossh.ClientConfig{
+			User:            bastionUser,
+			Auth:            []gossh.AuthMethod{keyAuth},
+			HostKeyCallback: gossh.InsecureIgnoreHostKey(),
+			Timeout:         10 * time.Second,
+		}
+
+		bastion, err := gossh.Dial("tcp", bastionAddr, bastionConfig)
+		if err != nil {
+			return nil, fmt.Errorf("bastion dial failed: %w", err)
+		}
+
+		conn, err := bastion.Dial("tcp", fmt.Sprintf("%s:22", vmHost))
+		if err != nil {
+			bastion.Close()
+			return nil, fmt.Errorf("vm dial via bastion failed: %w", err)
+		}
+
+		vmConfig := &gossh.ClientConfig{
+			User:            user,
+			Auth:            []gossh.AuthMethod{keyAuth},
+			HostKeyCallback: gossh.InsecureIgnoreHostKey(),
+			Timeout:         10 * time.Second,
+		}
+
+		ncc, chans, reqs, err := gossh.NewClientConn(conn, vmHost, vmConfig)
+		if err != nil {
+			return nil, fmt.Errorf("vm ssh conn failed: %w", err)
+		}
+		client = gossh.NewClient(ncc, chans, reqs)
+
+	} else {
+		vmConfig := &gossh.ClientConfig{
+			User:            user,
+			Auth:            []gossh.AuthMethod{keyAuth},
+			HostKeyCallback: gossh.InsecureIgnoreHostKey(),
+			Timeout:         10 * time.Second,
+		}
+		client, err = gossh.Dial("tcp", fmt.Sprintf("%s:22", vmHost), vmConfig)
+		if err != nil {
+			return nil, fmt.Errorf("ssh dial failed: %w", err)
+		}
 	}
 
 	session, err := client.NewSession()
@@ -43,10 +105,10 @@ func NewPTYSession(host, user, password string) (*PTYSession, error) {
 		return nil, fmt.Errorf("ssh session failed: %w", err)
 	}
 
-	modes := ssh.TerminalModes{
-		ssh.ECHO:          1,
-		ssh.TTY_OP_ISPEED: 14400,
-		ssh.TTY_OP_OSPEED: 14400,
+	modes := gossh.TerminalModes{
+		gossh.ECHO:          1,
+		gossh.TTY_OP_ISPEED: 14400,
+		gossh.TTY_OP_OSPEED: 14400,
 	}
 
 	if err := session.RequestPty("xterm-256color", 40, 120, modes); err != nil {
@@ -88,59 +150,58 @@ func (p *PTYSession) Close() {
 	p.sshClient.Close()
 }
 
-// HandlePTY gère le WebSocket /ws/pty/{id}
-// Flux binaire pur : navigateur → stdin SSH, stdout SSH → navigateur
 func HandlePTY(w http.ResponseWriter, r *http.Request) {
 	vmHost := r.URL.Query().Get("host")
 	if vmHost == "" {
-		http.Error(w, "missing host", http.StatusBadRequest)
+		http.Error(w, "host manquant", http.StatusBadRequest)
 		return
 	}
 
 	user := os.Getenv("VM_SSH_USER")
-	password := os.Getenv("VM_SSH_PASSWORD")
 	if user == "" {
 		user = "apprenant"
-	}
-	if password == "" {
-		password = "motdepasse"
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		log.Printf("[PTY] WebSocket upgrade failed: %v", err)
 		return
 	}
 	defer ws.Close()
 
-	pty, err := NewPTYSession(vmHost, user, password)
+	pty, err := NewPTYSession(vmHost, user, "")
 	if err != nil {
-		ws.WriteMessage(websocket.TextMessage, []byte("Connexion SSH échouée: "+err.Error()))
+		errorMsg := fmt.Sprintf("Erreur SSH: %v", err)
+		log.Printf("[PTY] %s", errorMsg)
+		ws.WriteMessage(websocket.TextMessage, []byte(errorMsg))
 		return
 	}
 	defer pty.Close()
 
-	// stdout SSH → WebSocket
 	go func() {
 		buf := make([]byte, 4096)
 		for {
 			n, err := pty.stdout.Read(buf)
 			if err != nil {
-				return
+				log.Printf("[PTY] stdout fermé: %v", err)
+				break
 			}
 			if err := ws.WriteMessage(websocket.BinaryMessage, buf[:n]); err != nil {
-				return
+				log.Printf("[PTY] Échec envoi WebSocket: %v", err)
+				break
 			}
 		}
 	}()
 
-	// WebSocket → stdin SSH
 	for {
 		_, data, err := ws.ReadMessage()
 		if err != nil {
-			return
+			log.Printf("[PTY] WebSocket fermée: %v", err)
+			break
 		}
 		if _, err := pty.stdin.Write(data); err != nil {
-			return
+			log.Printf("[PTY] stdin fermé: %v", err)
+			break
 		}
 	}
 }
