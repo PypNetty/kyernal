@@ -1,5 +1,6 @@
-import Arena from './components/Arena';
+import { RouterProvider } from '@tanstack/react-router';
+import { router } from './components/Arena/router';
 
 export default function App() {
-  return <Arena />;
+  return <RouterProvider router={router} />;
 }

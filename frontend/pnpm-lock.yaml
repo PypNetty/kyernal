@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@tanstack/react-router':
+        specifier: ^1.170.8
+        version: 1.170.8(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@xterm/addon-fit':
         specifier: ^0.11.0
         version: 0.11.0
@@ -423,6 +426,30 @@ packages:
   '@tailwindcss/postcss@4.3.0':
     resolution: {integrity: sha512-Jm05Tjx+9yCLGv5qw1c+84Psds8MnyrEQYCB+FFk2lgGiUjlRqdxke4mVTuYrj2xnVZqKim2Apr5ySuQRYAw/w==}
 
+  '@tanstack/history@1.162.0':
+    resolution: {integrity: sha512-79pf/RkhteYZTRgcR4F9kbk84P2N8rugQJswxfIqovlbRiT3yI7eBE+5QorIrZaOKktsgzRlXh1l/du/xpl4iA==}
+    engines: {node: '>=20.19'}
+
+  '@tanstack/react-router@1.170.8':
+    resolution: {integrity: sha512-Qw2ju6jjnIsMpuW+VrnHZWHuugqs592PWsnI56sG28qNhg14CgRLahOcNajfuJR9P4MxKGP94WVzmFKSYUz/ig==}
+    engines: {node: '>=20.19'}
+    peerDependencies:
+      react: '>=18.0.0 || >=19.0.0'
+      react-dom: '>=18.0.0 || >=19.0.0'
+
+  '@tanstack/react-store@0.9.3':
+    resolution: {integrity: sha512-y2iHd/N9OkoQbFJLUX1T9vbc2O9tjH0pQRgTcx1/Nz4IlwLvkgpuglXUx+mXt0g5ZDFrEeDnONPqkbfxXJKwRg==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  '@tanstack/router-core@1.171.6':
+    resolution: {integrity: sha512-Ol6DQ+j6rf/rPVELIzo8LHwOQV2KL+zry3b+39kL/GKrt7YId52WJRAFMzuseY4XceSW+PU7sG/Cc1QkwJr0hg==}
+    engines: {node: '>=20.19'}
+
+  '@tanstack/store@0.9.3':
+    resolution: {integrity: sha512-8reSzl/qGWGGVKhBoxXPMWzATSbZLZFWhwBAFO9NAyp0TxzfBP0mIrGb8CP8KrQTmvzXlR/vFPPUrHTLBGyFyw==}
+
   '@tybys/wasm-util@0.10.2':
     resolution: {integrity: sha512-RoBvJ2X0wuKlWFIjrwffGw1IqZHKQqzIchKaadZZfnNpsAYp2mM0h36JtPCjNDAHGgYez/15uMBpfGwchhiMgg==}
 
@@ -556,6 +583,9 @@ packages:
 
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
+
+  cookie-es@3.1.1:
+    resolution: {integrity: sha512-UaXxwISYJPTr9hwQxMFYZ7kNhSXboMXP+Z3TRX6f1/NyaGPfuNUZOWP1pUEb75B2HjfklIYLVRfWiFZJyC6Npg==}
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -724,6 +754,10 @@ packages:
   is-glob@4.0.3:
     resolution: {integrity: sha512-xelSayHH36ZgE7ZWhli7pW34hNbNl8Ojv5KVmkJD4hBdD3th8Tfk9vYasLM+mXWOZhFkgZfxhLSnrwRr4elSSg==}
     engines: {node: '>=0.10.0'}
+
+  isbot@5.1.40:
+    resolution: {integrity: sha512-yNeeynhhtIVRBk12tBV4eHNxwB42HzR4Q3Ea7vCOiJhImGaAIdIMrbJtacQlBizGLjUPw+akkFI5Dn9T70XoVQ==}
+    engines: {node: '>=18'}
 
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
@@ -939,6 +973,16 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  seroval-plugins@1.5.4:
+    resolution: {integrity: sha512-S0xQPhUTefAhNvNWFg0c1J8qJArHt5KdtJ/cFAofo06KD1MVSeFWyl4iiu+ApDIuw0WhjpOfCdgConOfAnLgkw==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      seroval: ^1.0
+
+  seroval@1.5.4:
+    resolution: {integrity: sha512-46uFvgrXTVxZcUorgSSRZ4y+ieqLLQRMlG4bnCZKW3qI6BZm7Rg4ntMW4p1mILEEBZWrFlcpp0AyIIlM6jD9iw==}
+    engines: {node: '>=10'}
+
   shebang-command@2.0.0:
     resolution: {integrity: sha512-kHxr2zZpYtdmrN1qDjrrX/Z1rR1kG8Dx+gkpK1G4eXmvXswmcE1hTWBWYUzlraYw1/yZp6YuDY77YtvbN0dmDA==}
     engines: {node: '>=8'}
@@ -995,6 +1039,11 @@ packages:
 
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
+
+  use-sync-external-store@1.6.0:
+    resolution: {integrity: sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   usehooks-ts@3.1.1:
     resolution: {integrity: sha512-I4diPp9Cq6ieSUH2wu+fDAVQO43xwtulo+fKEidHUwZPnYImbtkTjzIJYcDcJqxgmX31GVqNFURodvcgHcW0pA==}
@@ -1371,6 +1420,33 @@ snapshots:
       postcss: 8.5.15
       tailwindcss: 4.3.0
 
+  '@tanstack/history@1.162.0': {}
+
+  '@tanstack/react-router@1.170.8(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+    dependencies:
+      '@tanstack/history': 1.162.0
+      '@tanstack/react-store': 0.9.3(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@tanstack/router-core': 1.171.6
+      isbot: 5.1.40
+      react: 19.2.6
+      react-dom: 19.2.6(react@19.2.6)
+
+  '@tanstack/react-store@0.9.3(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+    dependencies:
+      '@tanstack/store': 0.9.3
+      react: 19.2.6
+      react-dom: 19.2.6(react@19.2.6)
+      use-sync-external-store: 1.6.0(react@19.2.6)
+
+  '@tanstack/router-core@1.171.6':
+    dependencies:
+      '@tanstack/history': 1.162.0
+      cookie-es: 3.1.1
+      seroval: 1.5.4
+      seroval-plugins: 1.5.4(seroval@1.5.4)
+
+  '@tanstack/store@0.9.3': {}
+
   '@tybys/wasm-util@0.10.2':
     dependencies:
       tslib: 2.8.1
@@ -1532,6 +1608,8 @@ snapshots:
   classnames@2.5.1: {}
 
   convert-source-map@2.0.0: {}
+
+  cookie-es@3.1.1: {}
 
   cross-spawn@7.0.6:
     dependencies:
@@ -1697,6 +1775,8 @@ snapshots:
     dependencies:
       is-extglob: 2.1.1
 
+  isbot@5.1.40: {}
+
   isexe@2.0.0: {}
 
   jiti@2.7.0: {}
@@ -1851,6 +1931,12 @@ snapshots:
 
   semver@7.8.1: {}
 
+  seroval-plugins@1.5.4(seroval@1.5.4):
+    dependencies:
+      seroval: 1.5.4
+
+  seroval@1.5.4: {}
+
   shebang-command@2.0.0:
     dependencies:
       shebang-regex: 3.0.0
@@ -1900,6 +1986,10 @@ snapshots:
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
+
+  use-sync-external-store@1.6.0(react@19.2.6):
+    dependencies:
+      react: 19.2.6
 
   usehooks-ts@3.1.1(react@19.2.6):
     dependencies:
