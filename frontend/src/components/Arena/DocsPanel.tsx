@@ -828,10 +828,12 @@ export default function DocsPanel() {
   });
 
   const border = dark ? '#1f1f1f' : '#e8e8e5';
-  const bg = dark ? '#0e0f11' : '#f7f7f9';
+  // Slightly lighter dark background to be 'less black'
+  const bg = dark ? '#111215' : '#f7f7f9';
   const bgContent = dark ? '#09090b' : '#ffffff';
   const textMain = dark ? '#e4e4e7' : '#111113';
-  const textMuted = dark ? '#71717a' : '#6b6b6b';
+  // Slightly lighter muted text for markdown content (not too light)
+  const textMuted = dark ? '#9ca3af' : '#7b7b7b';
   const hoverBg = dark ? '#ffffff08' : '#00000007';
   const activeBg = dark ? '#ffffff12' : '#00000012';
   const inputBg = dark ? '#17181a' : '#f0f0ee';

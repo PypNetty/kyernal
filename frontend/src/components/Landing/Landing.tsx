@@ -36,38 +36,47 @@ const KyernalLogo = ({
 
 const THEMES = {
   dark: {
-    bg: '#09090b',
-    bgCard: '#141416',
+    // Le "Nouveau Noir" (plus doux, type Graphite/Charcoal)
+    bg: '#111113', // Au lieu de #09090b
+    bgCard: '#18181b', // Un fond de carte légèrement plus distinct
     border: '#27272a',
-    borderMuted: 'rgba(24,24,27,0.5)',
-    text: '#ffffff',
+    borderMuted: 'rgba(39,39,42,0.5)',
+
+    text: '#fafafa', // Blanc très légèrement cassé pour ne pas brûler la rétine
     textSub: '#a1a1aa',
     textMuted: '#71717a',
-    textFaint: '#3f3f46',
-    inputBg: '#141416',
-    inputBorder: '#27272a',
-    navBg: 'rgba(9,9,11,0.7)',
-    btnPrimary: '#f4f4f5',
-    btnPrimaryText: '#09090b',
-    btnSecondaryBg: '#141416',
+    textFaint: '#52525b',
+
+    inputBg: '#18181b', // Pareil que bgCard pour la cohérence
+    inputBorder: '#3f3f46', // Bordure d'input plus visible
+    navBg: 'rgba(17,17,19,0.7)',
+
+    btnPrimary: '#ededed',
+    btnPrimaryText: '#111113',
+    btnSecondaryBg: '#18181b',
     btnSecondaryText: '#e4e4e7',
-    badgeBg: 'rgba(255,255,255,0.03)',
+
+    badgeBg: 'rgba(255,255,255,0.04)',
     badgeBorder: 'rgba(255,255,255,0.1)',
-    gridColor: '#18181b',
-    haloBg: 'rgba(255,255,255,0.03)',
-    toggleBg: '#141416',
+    gridColor: '#27272a', // Grille plus douce
+    haloBg: 'rgba(255,255,255,0.02)', // Halo encore plus subtil
+
+    toggleBg: '#18181b',
     toggleBorder: '#27272a',
-    toggleActiveBg: '#27272a',
-    toggleActiveText: '#f4f4f5',
+    toggleActiveBg: '#3f3f46',
+    toggleActiveText: '#fafafa',
     toggleInactiveText: '#71717a',
-    tagBg: '#141416',
+
+    tagBg: '#18181b',
     tagBorder: '#27272a',
-    tagText: '#52525b',
-    textareaBg: '#141416',
-    textareaText: '#f4f4f5',
-    textareaPlaceholder: '#52525b',
+    tagText: '#a1a1aa',
+
+    textareaBg: '#18181b',
+    textareaText: '#fafafa',
+    textareaPlaceholder: '#71717a',
   },
   light: {
+    // Reste inchangé, ton light mode "sable/parchemin" est très élégant
     bg: '#f5f0eb',
     bgCard: '#ede8e0',
     border: '#d6cfc4',
@@ -324,24 +333,7 @@ export default function Landing() {
           >
             {mode === 'dark' ? '☀' : '◐'}
           </button>
-          <Link to="/login" style={{ textDecoration: 'none' }}>
-            <button
-              style={{
-                height: '32px',
-                padding: '0 16px',
-                borderRadius: '6px',
-                border: `1px solid ${t.border}`,
-                background: t.btnSecondaryBg,
-                color: t.btnSecondaryText,
-                fontSize: '12px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
-            >
-              Espace apprenant
-            </button>
-          </Link>
+          {/* 'Espace apprenant' button removed per request */}
         </div>
       </nav>
 
