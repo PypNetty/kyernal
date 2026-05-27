@@ -243,10 +243,10 @@ export default function Layout() {
     role: 'Admin Linux DevOps',
   };
 
-  const border = dark ? '#18181b' : '#e4e4e7';
+  const border = dark ? '#1c1c1e' : '#e4e4e7';
   const bg = dark ? '#09090b' : '#fafafa';
-  const text = dark ? '#f4f4f5' : '#18181b';
-  const textMuted = dark ? '#71717a' : '#a1a1aa';
+  const text = dark ? '#f4f4f5' : '#09090b';
+  const textMuted = dark ? '#71717a' : '#71717a';
 
   const startSession = async (incidentId: string) => {
     setLoading(true);
@@ -344,37 +344,35 @@ export default function Layout() {
           background: dark ? '#09090b' : '#ffffff',
           color: text,
           fontFamily:
-            '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         }}
       >
         <div
           style={{
-            height: '40px',
+            height: '36px',
             borderBottom: `1px solid ${border}`,
             display: 'flex',
             alignItems: 'center',
-            padding: '0 16px',
+            padding: '0 12px',
             justifyContent: 'space-between',
             background: bg,
             flexShrink: 0,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <KlixyLogo size={18} />
-            <div
-              style={{
-                fontSize: '11px',
-                fontWeight: 600,
-                letterSpacing: '1px',
-                textTransform: 'uppercase',
-                opacity: 0.9,
-              }}
-            >
-              
-            </div>
+          <div
+            style={{
+              fontSize: '11px',
+              fontWeight: 600,
+              color: text,
+              letterSpacing: '0.3px',
+              textTransform: 'uppercase',
+              opacity: 0.8,
+            }}
+          >
+            Klixy Node
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
             {isInsideTicketDetail && (
               <>
                 {renderPanelToggle('Ticket', showTicket, () =>
@@ -391,7 +389,7 @@ export default function Layout() {
                     width: '1px',
                     height: '12px',
                     background: border,
-                    margin: '0 8px',
+                    margin: '0 6px',
                   }}
                 />
               </>
