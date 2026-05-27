@@ -15,6 +15,7 @@ import RetourPanel from './RetourPanel';
 import ActivitePanel from './ActivitePanel';
 import CompetencePanel from './CompetencePanel';
 import ProjetsPanel from './ProjetsPanel';
+import RessourcesPanel from './RessourcesPanel';
 import CompetencesPanel from './CompetencesPanel';
 import TicketPanel from './TicketPanel';
 import TerminalPanel from './TerminalPanel';
@@ -125,7 +126,7 @@ function ProjetsPage() {
   return <ProjetsPanel />;
 }
 function RessourcePage() {
-  return <PlaceholderPage name="Ressources" />;
+  return <RessourcesPanel />;
 }
 function StatistiquePage() {
   return <PlaceholderPage name="Statistiques IA" />;
