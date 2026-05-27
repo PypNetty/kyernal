@@ -16,6 +16,7 @@ import ActivitePanel from './ActivitePanel';
 import CompetencePanel from './CompetencePanel';
 import ProjetsPanel from './ProjetsPanel';
 import RessourcesPanel from './RessourcesPanel';
+import StatistiquesPanel from './StatistiquesPanel';
 import CompetencesPanel from './CompetencesPanel';
 import TicketPanel from './TicketPanel';
 import TerminalPanel from './TerminalPanel';
@@ -129,7 +130,7 @@ function RessourcePage() {
   return <RessourcesPanel />;
 }
 function StatistiquePage() {
-  return <PlaceholderPage name="Statistiques IA" />;
+  return <StatistiquesPanel />;
 }
 function AutonomiePage() {
   return <PlaceholderPage name="Score d'autonomie" />;
