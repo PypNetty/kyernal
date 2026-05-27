@@ -33,7 +33,7 @@ const MOCK_MESSAGES: InboxMessage[] = [
 
 **Contexte :** Le serveur Apache hébergé sur \`srv-rh-01\` ne répond plus aux requêtes HTTP depuis 08h14. Les utilisateurs du service RH signalent une page blanche ou une erreur de connexion.
 
-**Environnement :** Debian 12 · Apache 2.4 · Port 80/443
+**Environnement :** Debian 13 · Apache 2.4 · Port 80/443
 
 **Objectif :** Diagnostiquer la panne, identifier la cause racine et remettre le service en ligne. Documente chaque étape dans le terminal.
 
@@ -76,7 +76,7 @@ const MOCK_MESSAGES: InboxMessage[] = [
       "J'ai regardé ta session d'hier. Ta démarche de diagnostic était...",
     body: `Salut Henryck,
 
-J'ai regardé le replay de ta session sur l'incident #INC-035 (fail2ban). Ta démarche de diagnostic était vraiment solide — tu as commencé par les logs avant de toucher à la config, c'est exactement ce qu'on attend d'un technicien en conditions réelles.
+J'ai regardé le replay de ta session sur l'incident #INC-035 (fail2ban). Ta démarche de diagnostic était vraiment solide, tu as commencé par les logs avant de toucher à la config, c'est exactement ce qu'on attend d'un technicien en conditions réelles.
 
 Un point à améliorer : pense à vérifier \`systemctl status\` avant \`journalctl\`, ça te donnera un aperçu plus rapide de l'état du service.
 
@@ -117,7 +117,7 @@ Vous pouvez relancer une nouvelle session à tout moment depuis l'Inbox.`,
 
 **Contexte :** Le volume \`/var\` du serveur \`srv-prod-02\` est à 97% de capacité. Des services commencent à dysfonctionner (cron, syslog). Une intervention rapide est nécessaire.
 
-**Environnement :** Debian 12 · LVM · ext4
+**Environnement :** Debian 13 · LVM · ext4
 
 **Objectif :** Identifier les fichiers/dossiers qui consomment l'espace, nettoyer proprement (logs, cache apt, fichiers temporaires) sans casser les services en cours.
 
@@ -133,7 +133,7 @@ Vous pouvez relancer une nouvelle session à tout moment depuis l'Inbox.`,
     from: 'Marc Lefebvre',
     fromInitials: 'ML',
     fromColor: '#30a46c',
-    subject: 'Nouveau module disponible — Sécurité SSH',
+    subject: 'Nouveau module disponible: Sécurité SSH',
     preview: "J'ai ajouté 3 nouveaux incidents autour du durcissement SSH...",
     body: `Bonjour Henryck,
 
@@ -144,7 +144,7 @@ Les scénarios couvrent :
 - Configuration de fail2ban pour SSH
 - Audit des clés autorisées
 
-Ces labs sont marqués "Avancé" — prends-les après avoir validé les incidents Apache et DNS.
+Ces labs sont marqués "Avancé": prends-les après avoir validé les incidents Apache et DNS.
 
 À bientôt,
 Marc`,

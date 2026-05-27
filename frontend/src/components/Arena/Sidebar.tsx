@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link, useRouterState } from '@tanstack/react-router';
 import { UserProfile } from './types';
 
 // --- ICÔNES SVG FAÇON LINEAR ---
@@ -139,6 +140,45 @@ const IconShield = () => (
   </svg>
 );
 
+// --- NAV CONFIG ---
+const MAIN_NAV = [
+  {
+    id: 'inbox',
+    icon: <IconInbox />,
+    label: 'Boîte de réception',
+    to: '/inbox',
+  },
+  { id: 'tickets', icon: <IconTicket />, label: 'Mes tickets', to: '/tickets' },
+  { id: 'reviews', icon: <IconReview />, label: 'Retours', to: '/retours' },
+  { id: 'pulse', icon: <IconPulse />, label: 'Activité', to: '/activite' },
+];
+
+const WORKSPACE_NAV = [
+  {
+    id: 'skills',
+    icon: <IconTarget />,
+    label: 'Compétences',
+    to: '/competences',
+  },
+  { id: 'projects', icon: <IconProject />, label: 'Projets', to: '/projets' },
+  { id: 'docs', icon: <IconBook />, label: 'Ressources', to: '/ressources' },
+];
+
+const FAVORITES_NAV = [
+  {
+    id: 'insights',
+    icon: <IconChart />,
+    label: 'Statistiques IA',
+    to: '/statistiques',
+  },
+  {
+    id: 'autonomy',
+    icon: <IconShield />,
+    label: "Score d'autonomie",
+    to: '/autonomie',
+  },
+];
+
 export default function Sidebar({
   dark,
   user,
@@ -146,7 +186,8 @@ export default function Sidebar({
   dark: boolean;
   user: UserProfile;
 }) {
-  const [activeItem, setActiveItem] = useState('Mes tickets');
+  const routerState = useRouterState();
+  const currentPath = routerState.location.pathname;
 
   const bg = dark ? '#0e0f11' : '#f7f7f9';
   const textMain = dark ? '#ededed' : '#111113';
@@ -154,68 +195,53 @@ export default function Sidebar({
   const hoverBg = dark ? '#ffffff14' : '#0000000a';
   const border = dark ? '#27282b' : '#e8e8e5';
 
-  const MAIN_NAV = [
-    { id: 'inbox', icon: <IconInbox />, label: 'Boîte de réception' },
-    { id: 'tickets', icon: <IconTicket />, label: 'Mes tickets' },
-    { id: 'reviews', icon: <IconReview />, label: 'Retours' },
-    { id: 'pulse', icon: <IconPulse />, label: 'Activité' },
-  ];
-
-  const WORKSPACE_NAV = [
-    { id: 'skills', icon: <IconTarget />, label: 'Compétences' },
-    { id: 'projects', icon: <IconProject />, label: 'Projets' },
-    { id: 'docs', icon: <IconBook />, label: 'Ressources' },
-  ];
-
-  const FAVORITES_NAV = [
-    { id: 'insights', icon: <IconChart />, label: 'Statistiques IA' },
-    { id: 'autonomy', icon: <IconShield />, label: "Score d'autonomie" },
-  ];
-
   const NavItem = ({
     icon,
     label,
+    to,
   }: {
     icon: React.ReactNode;
     label: string;
+    to: string;
   }) => {
-    const isActive = activeItem === label;
+    const isActive = currentPath === to || currentPath.startsWith(to + '/');
     return (
-      <div
-        onClick={() => setActiveItem(label)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '6px 12px',
-          margin: '2px 8px',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          background: isActive ? hoverBg : 'transparent',
-          color: isActive ? textMain : textMuted,
-          fontSize: '13px',
-          fontWeight: 500,
-          transition: 'background 0.1s, color 0.1s',
-        }}
-        onMouseEnter={(e) => {
-          if (!isActive) e.currentTarget.style.background = hoverBg;
-        }}
-        onMouseLeave={(e) => {
-          if (!isActive) e.currentTarget.style.background = 'transparent';
-        }}
-      >
+      <Link to={to} style={{ textDecoration: 'none' }}>
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            opacity: isActive ? 1 : 0.7,
+            gap: '10px',
+            padding: '6px 12px',
+            margin: '2px 8px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            background: isActive ? hoverBg : 'transparent',
+            color: isActive ? textMain : textMuted,
+            fontSize: '13px',
+            fontWeight: 500,
+            transition: 'background 0.1s, color 0.1s',
+          }}
+          onMouseEnter={(e) => {
+            if (!isActive) e.currentTarget.style.background = hoverBg;
+          }}
+          onMouseLeave={(e) => {
+            if (!isActive) e.currentTarget.style.background = 'transparent';
           }}
         >
-          {icon}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: isActive ? 1 : 0.7,
+            }}
+          >
+            {icon}
+          </div>
+          {label}
         </div>
-        {label}
-      </div>
+      </Link>
     );
   };
 
@@ -246,7 +272,7 @@ export default function Sidebar({
         fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif',
       }}
     >
-      {/* Header Sidebar */}
+      {/* Header */}
       <div
         style={{
           height: '48px',
@@ -263,7 +289,7 @@ export default function Sidebar({
             width: '20px',
             height: '20px',
             borderRadius: '4px',
-            background: '#0066ff',
+            background: '#0055e5',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -284,23 +310,37 @@ export default function Sidebar({
         </span>
       </div>
 
+      {/* Nav */}
       <div style={{ flex: 1, overflowY: 'auto', paddingTop: '12px' }}>
         {MAIN_NAV.map((item) => (
-          <NavItem key={item.id} icon={item.icon} label={item.label} />
+          <NavItem
+            key={item.id}
+            icon={item.icon}
+            label={item.label}
+            to={item.to}
+          />
         ))}
-
         <SectionHeader title="WORKSPACE" />
         {WORKSPACE_NAV.map((item) => (
-          <NavItem key={item.id} icon={item.icon} label={item.label} />
+          <NavItem
+            key={item.id}
+            icon={item.icon}
+            label={item.label}
+            to={item.to}
+          />
         ))}
-
         <SectionHeader title="FAVORIS" />
         {FAVORITES_NAV.map((item) => (
-          <NavItem key={item.id} icon={item.icon} label={item.label} />
+          <NavItem
+            key={item.id}
+            icon={item.icon}
+            label={item.label}
+            to={item.to}
+          />
         ))}
       </div>
 
-      {/* Profil Utilisateur Dynamique */}
+      {/* Profil */}
       <div
         style={{
           padding: '12px 16px',
