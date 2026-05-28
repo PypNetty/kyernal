@@ -3,6 +3,7 @@ import {
   createRoute,
   createRootRoute,
   Outlet,
+  redirect,
 } from '@tanstack/react-router';
 import React, { useContext } from 'react';
 import { Allotment } from 'allotment';
@@ -19,6 +20,7 @@ import SkillTreePanel from './skills/components/SkillTreePanel';
 import { DocsPanel } from './docs';
 import TicketPanel from './tickets/components/TicketPanel';
 import TerminalPanel from './tickets/components/TerminalPanel';
+import { getStoredSession, LoginPage, ProfilePage } from '../auth';
 import { Landing } from '../landing';
 
 function RootPage() {
@@ -136,18 +138,49 @@ function StatistiquePage() {
 function AutonomiePage() {
   return <PlaceholderPage name="Score d'autonomie" />;
 }
+function ProfilePageRoute() {
+  return <ProfilePage />;
+}
 
 const rootRoute = createRootRoute({ component: RootPage });
 const arenaLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'arena-layout',
   component: Layout,
+  beforeLoad: ({ location }) => {
+    if (!getStoredSession()) {
+      const redirectTo = location.pathname + location.search;
+      throw redirect({
+        to: '/login',
+        search: {
+          redirect: redirectTo.startsWith('/') ? redirectTo : '/inbox',
+        },
+      });
+    }
+  },
 });
 
 const landingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: Landing,
+});
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect:
+      typeof search.redirect === 'string' && search.redirect.startsWith('/')
+        ? search.redirect
+        : '/inbox',
+  }),
+  beforeLoad: ({ search }) => {
+    if (getStoredSession()) {
+      throw redirect({ to: search.redirect });
+    }
+  },
+  component: LoginPage,
 });
 
 const inboxRoute = createRoute({
@@ -200,9 +233,15 @@ const autonomyRoute = createRoute({
   path: '/autonomie',
   component: AutonomiePage,
 });
+const profileRoute = createRoute({
+  getParentRoute: () => arenaLayoutRoute,
+  path: '/profil',
+  component: ProfilePageRoute,
+});
 
 const routeTree = rootRoute.addChildren([
   landingRoute,
+  loginRoute,
   arenaLayoutRoute.addChildren([
     inboxRoute,
     ticketsRoute,
@@ -214,6 +253,7 @@ const routeTree = rootRoute.addChildren([
     docsRoute,
     insightsRoute,
     autonomyRoute,
+    profileRoute,
   ]),
 ]);
 

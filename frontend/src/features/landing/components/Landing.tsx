@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import KyernalLogo from './KyernalLogo';
 import Waitlist from './Waitlist';
@@ -79,6 +80,25 @@ export default function Landing() {
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Link
+            to="/login"
+            style={{
+              height: '32px',
+              padding: '0 14px',
+              borderRadius: '6px',
+              border: `1px solid ${t.border}`,
+              background: t.btnSecondaryBg,
+              color: t.btnSecondaryText,
+              fontSize: '13px',
+              fontWeight: 500,
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            Se connecter
+          </Link>
           <button
             onClick={() => setMode((m) => (m === 'dark' ? 'light' : 'dark'))}
             style={{

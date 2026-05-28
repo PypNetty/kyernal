@@ -301,7 +301,7 @@ export default function Sidebar({
           K
         </div>
         <span style={{ fontSize: '13px', fontWeight: 600, color: textMain }}>
-          Klixy Formation
+          {user.organization ?? 'Kyernal'}
         </span>
         <span
           style={{ marginLeft: 'auto', color: textMuted, fontSize: '10px' }}
@@ -341,42 +341,55 @@ export default function Sidebar({
       </div>
 
       {/* Profil */}
-      <div
-        style={{
-          padding: '12px 16px',
-          borderTop: `1px solid ${border}`,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          cursor: 'pointer',
-          background: hoverBg,
-        }}
-      >
+      <Link to="/profil" style={{ textDecoration: 'none' }} title="Mon profil">
         <div
           style={{
-            width: '24px',
-            height: '24px',
-            borderRadius: '50%',
-            background: '#30a46c',
+            padding: '12px 16px',
+            borderTop: `1px solid ${border}`,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontSize: '9px',
-            fontWeight: 700,
+            gap: '10px',
+            cursor: 'pointer',
+            background:
+              currentPath === '/profil' ? hoverBg : 'transparent',
+          }}
+          onMouseEnter={(e) => {
+            if (currentPath !== '/profil') {
+              e.currentTarget.style.background = hoverBg;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (currentPath !== '/profil') {
+              e.currentTarget.style.background = 'transparent';
+            }
           }}
         >
-          {user.initials}
+          <div
+            style={{
+              width: '24px',
+              height: '24px',
+              borderRadius: '50%',
+              background: '#30a46c',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              fontSize: '9px',
+              fontWeight: 700,
+            }}
+          >
+            {user.initials}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: textMain }}>
+              {user.name}
+            </span>
+            <span style={{ fontSize: '10px', color: textMuted }}>
+              {user.role}
+            </span>
+          </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: '12px', fontWeight: 600, color: textMain }}>
-            {user.name}
-          </span>
-          <span style={{ fontSize: '10px', color: textMuted }}>
-            {user.role}
-          </span>
-        </div>
-      </div>
+      </Link>
     </div>
   );
 }
