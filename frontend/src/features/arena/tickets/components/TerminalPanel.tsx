@@ -1,6 +1,6 @@
 import React from 'react';
-import TerminalComponent from '../Terminal'; // Ajuste le chemin selon ton projet
-import { PanelProps } from './types';
+import TerminalComponent from '../../../../components/Terminal';
+import { PanelProps } from '../../layout/context/types';
 
 export default function TerminalPanel({ dark, vmHost, onDragStart, onDragOver, onDrop, isDraggedOver }: PanelProps) {
   return (

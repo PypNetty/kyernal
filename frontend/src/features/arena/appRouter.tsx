@@ -2,26 +2,28 @@ import {
   createRouter,
   createRoute,
   createRootRoute,
-  redirect,
+  Outlet,
 } from '@tanstack/react-router';
 import React, { useContext } from 'react';
 import { Allotment } from 'allotment';
 import 'allotment/dist/style.css';
 
-import Layout, { LayoutCtx } from './Layout';
-import InboxPanel from './InboxPanel';
-import MyTickets from './MyTickets';
-import RetourPanel from './RetourPanel';
-import ActivitePanel from './ActivitePanel';
-import CompetencePanel from './CompetencePanel';
-import ProjetsPanel from './ProjetsPanel';
-import RessourcesPanel from './RessourcesPanel';
-import StatistiquesPanel from './StatistiquesPanel';
-import CompetencesPanel from './CompetencesPanel';
-import TicketPanel from './TicketPanel';
-import TerminalPanel from './TerminalPanel';
+import Layout, { LayoutCtx } from './layout/components/Layout';
+import { InboxPanel } from './inbox';
+import MyTickets from './tickets/components/MyTickets';
+import RetourPanel from './feedback/components/RetourPanel';
+import ActivitePanel from './activity/components/ActivitePanel';
+import { ProjetsPanel } from './projects';
+import StatistiquesPanel from './stats/components/StatistiquesPanel';
+import SkillTreePanel from './skills/components/SkillTreePanel';
+import { DocsPanel } from './docs';
+import TicketPanel from './tickets/components/TicketPanel';
+import TerminalPanel from './tickets/components/TerminalPanel';
+import { Landing } from '../landing';
 
-// ─── PAGES ──────────────────────────────────────────────────────────────────
+function RootPage() {
+  return <Outlet />;
+}
 
 function InboxPage() {
   const { dark } = useContext(LayoutCtx);
@@ -33,7 +35,6 @@ function MyTicketsPage() {
 }
 
 function TicketDetailPage() {
-  const { incidentId } = ticketDetailRoute.useParams();
   const { dark, vmHost, loading, startSession, vertical } =
     useContext(LayoutCtx);
 
@@ -121,13 +122,13 @@ function ActivitePage() {
   return <ActivitePanel />;
 }
 function CompetencePage() {
-  return <CompetencePanel />;
+  return <SkillTreePanel />;
 }
 function ProjetsPage() {
   return <ProjetsPanel />;
 }
 function RessourcePage() {
-  return <RessourcesPanel />;
+  return <DocsPanel />;
 }
 function StatistiquePage() {
   return <StatistiquesPanel />;
@@ -136,81 +137,84 @@ function AutonomiePage() {
   return <PlaceholderPage name="Score d'autonomie" />;
 }
 
-// ─── ROUTES ─────────────────────────────────────────────────────────────────
+const rootRoute = createRootRoute({ component: RootPage });
+const arenaLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: 'arena-layout',
+  component: Layout,
+});
 
-const rootRoute = createRootRoute({ component: Layout });
-
-const indexRoute = createRoute({
+const landingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  beforeLoad: () => {
-    throw redirect({ to: '/inbox' });
-  },
+  component: Landing,
 });
 
 const inboxRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => arenaLayoutRoute,
   path: '/inbox',
   component: InboxPage,
 });
 const ticketsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => arenaLayoutRoute,
   path: '/tickets',
   component: MyTicketsPage,
 });
 const ticketDetailRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => arenaLayoutRoute,
   path: '/tickets/$incidentId',
   component: TicketDetailPage,
 });
 const reviewsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => arenaLayoutRoute,
   path: '/retours',
   component: RetourPage,
 });
 const pulseRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => arenaLayoutRoute,
   path: '/activite',
   component: ActivitePage,
 });
 const skillsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => arenaLayoutRoute,
   path: '/competences',
   component: CompetencePage,
 });
 const projectsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => arenaLayoutRoute,
   path: '/projets',
   component: ProjetsPage,
 });
 const docsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => arenaLayoutRoute,
   path: '/ressources',
   component: RessourcePage,
 });
 const insightsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => arenaLayoutRoute,
   path: '/statistiques',
   component: StatistiquePage,
 });
 const autonomyRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => arenaLayoutRoute,
   path: '/autonomie',
   component: AutonomiePage,
 });
 
 const routeTree = rootRoute.addChildren([
-  indexRoute,
-  inboxRoute,
-  ticketsRoute,
-  ticketDetailRoute,
-  reviewsRoute,
-  pulseRoute,
-  skillsRoute,
-  projectsRoute,
-  docsRoute,
-  insightsRoute,
-  autonomyRoute,
+  landingRoute,
+  arenaLayoutRoute.addChildren([
+    inboxRoute,
+    ticketsRoute,
+    ticketDetailRoute,
+    reviewsRoute,
+    pulseRoute,
+    skillsRoute,
+    projectsRoute,
+    docsRoute,
+    insightsRoute,
+    autonomyRoute,
+  ]),
 ]);
 
 export const router = createRouter({ routeTree });

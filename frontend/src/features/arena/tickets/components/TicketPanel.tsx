@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PanelProps, TicketData } from './types';
+import { PanelProps, TicketData } from '../../layout/context/types';
 
 // Mock de l'Inbox
 const INBOX_TICKETS: TicketData[] = [

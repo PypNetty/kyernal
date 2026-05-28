@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
-import { UserProfile } from './types';
+import { UserProfile } from '../context/types';
 
 // --- ICÔNES SVG FAÇON LINEAR ---
 const IconInbox = () => (

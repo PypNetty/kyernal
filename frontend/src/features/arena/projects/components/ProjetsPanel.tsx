@@ -1,211 +1,16 @@
-import React, { useState, useContext } from 'react';
-import { LayoutCtx } from './Layout';
+import React, { useContext, useState } from 'react';
+import { LayoutCtx } from '../../layout/components/Layout';
+import {
+  MOCK_PROJECTS,
+  ROLE_LABELS,
+  STATUS_CONFIG,
+  VISIBILITY_CONFIG,
+  VISIBILITY_ICONS,
+  filterByRole,
+  type Project,
+  type UserRole,
+} from '../data/projetsData';
 
-// --- TYPES ---
-type UserRole = 'apprenant' | 'formateur' | 'recruteur';
-type ProjectStatus = 'en-cours' | 'termine' | 'pause' | 'brouillon';
-type ProjectVisibility = 'public' | 'prive' | 'formation';
-
-interface ProjectDeliverable {
-  label: string;
-  done: boolean;
-}
-
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  status: ProjectStatus;
-  visibility: ProjectVisibility;
-  owner: string;
-  ownerInitials: string;
-  ownerColor: string;
-  tags: string[];
-  deliverables: ProjectDeliverable[];
-  updatedAt: string;
-  // Champs internes — jamais visibles aux recruteurs
-  labsLinked?: string[];
-  formationModule?: string;
-}
-
-// --- MOCK ---
-const MOCK_PROJECTS: Project[] = [
-  {
-    id: '1',
-    title: 'Infrastructure Haute Disponibilité',
-    description:
-      "Mise en place d'une infrastructure HA avec load balancer Nginx, deux serveurs web en backend et monitoring Prometheus/Grafana.",
-    status: 'en-cours',
-    visibility: 'public',
-    owner: 'Henryck Paris',
-    ownerInitials: 'HP',
-    ownerColor: '#30a46c',
-    tags: ['Linux', 'Nginx', 'HA', 'Monitoring'],
-    deliverables: [
-      { label: "Schéma d'architecture", done: true },
-      { label: 'Configuration Nginx load balancer', done: true },
-      { label: 'Mise en place Prometheus', done: false },
-      { label: 'Dashboard Grafana', done: false },
-      { label: 'Documentation technique', done: false },
-    ],
-    updatedAt: "Aujourd'hui",
-    labsLinked: ['INC-042', 'INC-021'],
-    formationModule: 'CCP2',
-  },
-  {
-    id: '2',
-    title: "Durcissement d'un serveur Debian",
-    description:
-      "Checklist complète de sécurisation d'un serveur Debian 12 : SSH, fail2ban, iptables, auditd, suppression des services inutiles.",
-    status: 'termine',
-    visibility: 'public',
-    owner: 'Henryck Paris',
-    ownerInitials: 'HP',
-    ownerColor: '#30a46c',
-    tags: ['Sécurité', 'Debian', 'SSH', 'fail2ban'],
-    deliverables: [
-      { label: 'Checklist de durcissement', done: true },
-      { label: "Script d'automatisation bash", done: true },
-      { label: "Rapport d'audit avant/après", done: true },
-    ],
-    updatedAt: 'Mar',
-    labsLinked: ['INC-035', 'INC-077'],
-    formationModule: 'CCP3',
-  },
-  {
-    id: '3',
-    title: 'Dossier Professionnel TSSR',
-    description:
-      'Constitution du dossier professionnel pour la certification TSSR — deux situations professionnelles documentées.',
-    status: 'en-cours',
-    visibility: 'formation',
-    owner: 'Henryck Paris',
-    ownerInitials: 'HP',
-    ownerColor: '#30a46c',
-    tags: ['TSSR', 'Certification', 'DP'],
-    deliverables: [
-      { label: 'Situation professionnelle 1', done: true },
-      { label: 'Situation professionnelle 2', done: false },
-      { label: 'Relecture formateur', done: false },
-    ],
-    updatedAt: 'Hier',
-    formationModule: 'CCP1 + CCP2 + CCP3',
-  },
-  {
-    id: '4',
-    title: 'Homelab — Cluster Proxmox',
-    description:
-      'Documentation de mon homelab personnel : cluster Proxmox 3 nœuds, réseau WireGuard mesh, self-hosting de services.',
-    status: 'pause',
-    visibility: 'prive',
-    owner: 'Henryck Paris',
-    ownerInitials: 'HP',
-    ownerColor: '#30a46c',
-    tags: ['Proxmox', 'Homelab', 'WireGuard', 'Self-hosting'],
-    deliverables: [
-      { label: 'Schéma réseau', done: true },
-      { label: 'Documentation Proxmox', done: false },
-      { label: 'Guide WireGuard mesh', done: false },
-    ],
-    updatedAt: 'Lun',
-  },
-];
-
-// --- CONFIG ---
-const STATUS_CONFIG: Record<
-  ProjectStatus,
-  { label: string; color: string; bg: string }
-> = {
-  'en-cours': {
-    label: 'En cours',
-    color: '#f59e0b',
-    bg: 'rgba(245,158,11,0.1)',
-  },
-  termine: { label: 'Terminé', color: '#30a46c', bg: 'rgba(48,164,108,0.1)' },
-  pause: { label: 'En pause', color: '#8a8a93', bg: 'rgba(138,138,147,0.1)' },
-  brouillon: {
-    label: 'Brouillon',
-    color: '#6b7280',
-    bg: 'rgba(107,114,128,0.1)',
-  },
-};
-
-const IconPublic = () => (
-  <svg
-    width="11"
-    height="11"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <line x1="2" y1="12" x2="22" y2="12" />
-    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-  </svg>
-);
-const IconPrive = () => (
-  <svg
-    width="11"
-    height="11"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-  </svg>
-);
-const IconFormation = () => (
-  <svg
-    width="11"
-    height="11"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-    <path d="M6 12v5c3 3 9 3 12 0v-5" />
-  </svg>
-);
-
-const VISIBILITY_ICONS: Record<ProjectVisibility, React.ReactNode> = {
-  public: <IconPublic />,
-  prive: <IconPrive />,
-  formation: <IconFormation />,
-};
-
-const VISIBILITY_CONFIG: Record<
-  ProjectVisibility,
-  { label: string; color: string }
-> = {
-  public: { label: 'Public', color: '#30a46c' },
-  prive: { label: 'Privé', color: '#8a8a93' },
-  formation: { label: 'Formation', color: '#4d8fff' },
-};
-
-const ROLE_LABELS: Record<UserRole, string> = {
-  apprenant: 'Apprenant',
-  formateur: 'Formateur',
-  recruteur: 'Recruteur',
-};
-
-// --- FILTRAGE SELON RÔLE ---
-function filterByRole(projects: Project[], role: UserRole): Project[] {
-  if (role === 'recruteur')
-    return projects.filter((p) => p.visibility === 'public');
-  return projects;
-}
-
-// --- COMPOSANT CARTE PROJET ---
 function ProjectCard({
   project,
   role,
@@ -253,7 +58,6 @@ function ProjectCard({
         if (!isActive) e.currentTarget.style.background = 'transparent';
       }}
     >
-      {/* Titre + visibilité */}
       <div
         style={{
           display: 'flex',
@@ -275,16 +79,12 @@ function ProjectCard({
           {project.title}
         </span>
         {role !== 'recruteur' && (
-          <span
-            title={visCfg.label}
-            style={{ fontSize: '11px', flexShrink: 0 }}
-          >
+          <span title={visCfg.label} style={{ fontSize: '11px', flexShrink: 0 }}>
             {VISIBILITY_ICONS[project.visibility]}
           </span>
         )}
       </div>
 
-      {/* Description */}
       <div
         style={{
           fontSize: '11px',
@@ -300,7 +100,6 @@ function ProjectCard({
         {project.description}
       </div>
 
-      {/* Barre de progression */}
       <div
         style={{
           height: '3px',
@@ -321,7 +120,6 @@ function ProjectCard({
         />
       </div>
 
-      {/* Footer */}
       <div
         style={{
           display: 'flex',
@@ -349,7 +147,6 @@ function ProjectCard({
   );
 }
 
-// --- COMPOSANT PRINCIPAL ---
 export default function ProjetsPanel() {
   const { dark } = useContext(LayoutCtx);
   const [selected, setSelected] = useState<string>('1');
@@ -362,9 +159,6 @@ export default function ProjetsPanel() {
   const textMuted = dark ? '#8a8a93' : '#6b6b6b';
   const hoverBg = dark ? '#ffffff0a' : '#00000008';
   const activeBg = dark ? '#ffffff12' : '#00000012';
-  const trackBg = dark ? '#27282b' : '#e8e8e5';
-  const codeBg = dark ? '#1a1b1e' : '#f4f4f6';
-
   const visible = filterByRole(MOCK_PROJECTS, role);
   const project = visible.find((p) => p.id === selected) ?? visible[0] ?? null;
   const statusCfg = project ? STATUS_CONFIG[project.status] : null;
@@ -379,7 +173,6 @@ export default function ProjetsPanel() {
         background: bg,
       }}
     >
-      {/* ── LISTE ── */}
       <div
         style={{
           width: '280px',
@@ -389,7 +182,6 @@ export default function ProjetsPanel() {
           flexDirection: 'column',
         }}
       >
-        {/* Header */}
         <div
           style={{
             height: '48px',
@@ -423,7 +215,6 @@ export default function ProjetsPanel() {
           </span>
         </div>
 
-        {/* Switcher rôle (dev only — à retirer en prod) */}
         <div
           style={{
             padding: '8px 12px',
@@ -443,12 +234,7 @@ export default function ProjetsPanel() {
                 borderRadius: '5px',
                 border: 'none',
                 cursor: 'pointer',
-                background:
-                  role === r
-                    ? dark
-                      ? '#ffffff18'
-                      : '#00000012'
-                    : 'transparent',
+                background: role === r ? (dark ? '#ffffff18' : '#00000012') : 'transparent',
                 color: role === r ? textMain : textMuted,
               }}
             >
@@ -457,7 +243,6 @@ export default function ProjetsPanel() {
           ))}
         </div>
 
-        {/* Liste */}
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {visible.length === 0 ? (
             <div
@@ -490,7 +275,6 @@ export default function ProjetsPanel() {
         </div>
       </div>
 
-      {/* ── DÉTAIL ── */}
       <div
         style={{
           flex: 1,
@@ -502,7 +286,6 @@ export default function ProjetsPanel() {
       >
         {project && statusCfg && visCfg ? (
           <>
-            {/* Header */}
             <div
               style={{
                 height: '48px',
@@ -544,7 +327,6 @@ export default function ProjetsPanel() {
             </div>
 
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-              {/* Description */}
               <p
                 style={{
                   fontSize: '13px',
@@ -557,7 +339,6 @@ export default function ProjetsPanel() {
                 {project.description}
               </p>
 
-              {/* Tags */}
               {project.tags.length > 0 && (
                 <div
                   style={{
@@ -585,7 +366,6 @@ export default function ProjetsPanel() {
                 </div>
               )}
 
-              {/* Livrables */}
               <div style={{ marginBottom: '24px' }}>
                 <div
                   style={{
@@ -596,17 +376,10 @@ export default function ProjetsPanel() {
                     marginBottom: '10px',
                   }}
                 >
-                  LIVRABLES —{' '}
-                  {project.deliverables.filter((d) => d.done).length}/
+                  LIVRABLES — {project.deliverables.filter((d) => d.done).length}/
                   {project.deliverables.length}
                 </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                  }}
-                >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   {project.deliverables.map((d, i) => (
                     <div
                       key={i}
@@ -638,16 +411,7 @@ export default function ProjetsPanel() {
                         }}
                       >
                         {d.done && (
-                          <svg
-                            width="9"
-                            height="9"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#fff"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M20 6L9 17l-5-5" />
                           </svg>
                         )}
@@ -666,7 +430,6 @@ export default function ProjetsPanel() {
                 </div>
               </div>
 
-              {/* Infos internes — masquées aux recruteurs */}
               {role !== 'recruteur' && (
                 <>
                   {project.formationModule && (
@@ -710,13 +473,7 @@ export default function ProjetsPanel() {
                       >
                         LABS ASSOCIÉS
                       </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '6px',
-                          flexWrap: 'wrap',
-                        }}
-                      >
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                         {project.labsLinked.map((id) => (
                           <span
                             key={id}
@@ -738,7 +495,6 @@ export default function ProjetsPanel() {
                 </>
               )}
 
-              {/* Vue recruteur — message d'info */}
               {role === 'recruteur' && (
                 <div
                   style={{
@@ -751,8 +507,7 @@ export default function ProjetsPanel() {
                     lineHeight: 1.6,
                   }}
                 >
-                  Vous consultez la version publique de ce projet. Les détails
-                  techniques internes et les labs associés ne sont pas visibles.
+                  Vous consultez la version publique de ce projet. Les détails techniques internes et les labs associés ne sont pas visibles.
                 </div>
               )}
             </div>

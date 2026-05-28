@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { LayoutCtx } from './Layout';
+import { LayoutCtx } from '../../layout/components/Layout';
 
 // --- TYPES ---
 type AnnotationAuthor = 'formateur' | 'ia';

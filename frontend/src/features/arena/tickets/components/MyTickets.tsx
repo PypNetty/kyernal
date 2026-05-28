@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useContext } from 'react';
-import { LayoutCtx } from './Layout';
+import { LayoutCtx } from '../../layout/components/Layout';
 
 // --- TYPES ---
 type TicketStatus = 'en-cours' | 'a-faire' | 'resolu' | 'annule';
