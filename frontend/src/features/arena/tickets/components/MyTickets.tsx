@@ -1,0 +1,649 @@
+import React, { useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { useContext } from 'react';
+import { LayoutCtx } from '../../layout/components/Layout';
+
+// --- TYPES ---
+type TicketStatus = 'en-cours' | 'a-faire' | 'resolu' | 'annule';
+type TicketPriority = 'urgent' | 'haute' | 'moyenne' | 'basse';
+
+interface Ticket {
+  id: string;
+  incidentId: string;
+  title: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  competence: string;
+  updatedAt: string;
+  vmActive?: boolean;
+}
+
+// --- MOCK DATA ---
+const MOCK_TICKETS: Ticket[] = [
+  {
+    id: 'INC-042',
+    incidentId: '042',
+    title: 'Apache ne répond plus sur le port 80',
+    status: 'en-cours',
+    priority: 'urgent',
+    competence: 'CCP2',
+    updatedAt: "À l'instant",
+    vmActive: true,
+  },
+  {
+    id: 'INC-088',
+    incidentId: '088',
+    title: 'Problème DNS interne',
+    status: 'en-cours',
+    priority: 'moyenne',
+    competence: 'CCP1',
+    updatedAt: 'Il y a 2h',
+    vmActive: false,
+  },
+  {
+    id: 'INC-101',
+    incidentId: '101',
+    title: 'Espace disque critique sur /var',
+    status: 'a-faire',
+    priority: 'haute',
+    competence: 'CCP2',
+    updatedAt: 'Hier',
+    vmActive: false,
+  },
+  {
+    id: 'INC-115',
+    incidentId: '115',
+    title: "Service cron ne s'exécute plus",
+    status: 'a-faire',
+    priority: 'moyenne',
+    competence: 'CCP2',
+    updatedAt: 'Hier',
+    vmActive: false,
+  },
+  {
+    id: 'INC-077',
+    incidentId: '077',
+    title: 'Durcissement SSH — désactiver root login',
+    status: 'a-faire',
+    priority: 'basse',
+    competence: 'CCP3',
+    updatedAt: 'Lun',
+    vmActive: false,
+  },
+  {
+    id: 'INC-035',
+    incidentId: '035',
+    title: 'fail2ban bloque des IP légitimes',
+    status: 'resolu',
+    priority: 'haute',
+    competence: 'CCP3',
+    updatedAt: 'Mar',
+    vmActive: false,
+  },
+  {
+    id: 'INC-021',
+    incidentId: '021',
+    title: 'Nginx — erreur 502 Bad Gateway',
+    status: 'resolu',
+    priority: 'urgent',
+    competence: 'CCP2',
+    updatedAt: '12 mai',
+    vmActive: false,
+  },
+  {
+    id: 'INC-009',
+    incidentId: '009',
+    title: 'Partition /boot pleine après mise à jour',
+    status: 'resolu',
+    priority: 'haute',
+    competence: 'CCP2',
+    updatedAt: '5 mai',
+    vmActive: false,
+  },
+];
+
+// --- STATUT CONFIG ---
+const STATUS_CONFIG: Record<
+  TicketStatus,
+  { label: string; color: string; icon: React.ReactNode }
+> = {
+  'en-cours': {
+    label: 'En cours',
+    color: '#f59e0b',
+    icon: (
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+    ),
+  },
+  'a-faire': {
+    label: 'À faire',
+    color: '#8a8a93',
+    icon: (
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+      </svg>
+    ),
+  },
+  resolu: {
+    label: 'Résolu',
+    color: '#30a46c',
+    icon: (
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="m9 12 2 2 4-4" />
+      </svg>
+    ),
+  },
+  annule: {
+    label: 'Annulé',
+    color: '#ef4444',
+    icon: (
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="15" y1="9" x2="9" y2="15" />
+        <line x1="9" y1="9" x2="15" y2="15" />
+      </svg>
+    ),
+  },
+};
+
+// --- PRIORITÉ CONFIG ---
+const PRIORITY_CONFIG: Record<
+  TicketPriority,
+  { label: string; color: string; icon: React.ReactNode }
+> = {
+  urgent: {
+    label: 'Urgent',
+    color: '#ef4444',
+    icon: (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L2 19h20L12 2zm0 3.5L19.5 18h-15L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z" />
+      </svg>
+    ),
+  },
+  haute: {
+    label: 'Haute',
+    color: '#f97316',
+    icon: (
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <line x1="12" y1="19" x2="12" y2="5" />
+        <polyline points="5 12 12 5 19 12" />
+      </svg>
+    ),
+  },
+  moyenne: {
+    label: 'Moyenne',
+    color: '#8a8a93',
+    icon: (
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+    ),
+  },
+  basse: {
+    label: 'Basse',
+    color: '#6b7280',
+    icon: (
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <polyline points="19 12 12 19 5 12" />
+      </svg>
+    ),
+  },
+};
+
+// --- COMPOSANT GROUPE ---
+function TicketGroup({
+  status,
+  tickets,
+  dark,
+  onTicketClick,
+}: {
+  status: TicketStatus;
+  tickets: Ticket[];
+  dark: boolean;
+  onTicketClick: (t: Ticket) => void;
+}) {
+  const [collapsed, setCollapsed] = useState(false);
+  const cfg = STATUS_CONFIG[status];
+  const textMain = dark ? '#ededed' : '#111113';
+  const textMuted = dark ? '#8a8a93' : '#6b6b6b';
+  const border = dark ? '#1f1f1f' : '#f0f0ee';
+  const hoverBg = dark ? '#ffffff07' : '#00000005';
+
+  if (tickets.length === 0) return null;
+
+  return (
+    <div style={{ marginBottom: '4px' }}>
+      {/* Header groupe */}
+      <div
+        onClick={() => setCollapsed(!collapsed)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '6px 16px',
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = hoverBg;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+        }}
+      >
+        {/* Chevron */}
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={textMuted}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            transform: collapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+            transition: 'transform 0.15s',
+            flexShrink: 0,
+          }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+
+        {/* Icône statut */}
+        <span
+          style={{ color: cfg.color, display: 'flex', alignItems: 'center' }}
+        >
+          {cfg.icon}
+        </span>
+
+        <span style={{ fontSize: '12px', fontWeight: 600, color: textMain }}>
+          {cfg.label}
+        </span>
+        <span
+          style={{
+            fontSize: '11px',
+            color: textMuted,
+            background: dark ? '#ffffff0f' : '#0000000a',
+            padding: '1px 6px',
+            borderRadius: '10px',
+          }}
+        >
+          {tickets.length}
+        </span>
+      </div>
+
+      {/* Lignes de tickets */}
+      {!collapsed &&
+        tickets.map((ticket) => (
+          <TicketRow
+            key={ticket.id}
+            ticket={ticket}
+            dark={dark}
+            onClick={() => onTicketClick(ticket)}
+            textMain={textMain}
+            textMuted={textMuted}
+            border={border}
+            hoverBg={hoverBg}
+          />
+        ))}
+    </div>
+  );
+}
+
+// --- LIGNE TICKET ---
+function TicketRow({
+  ticket,
+  dark,
+  onClick,
+  textMain,
+  textMuted,
+  border,
+  hoverBg,
+}: {
+  ticket: Ticket;
+  dark: boolean;
+  onClick: () => void;
+  textMain: string;
+  textMuted: string;
+  border: string;
+  hoverBg: string;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const statusCfg = STATUS_CONFIG[ticket.status];
+  const priorityCfg = PRIORITY_CONFIG[ticket.priority];
+
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '5px 16px 5px 32px',
+        borderBottom: `1px solid ${border}`,
+        background: hovered ? hoverBg : 'transparent',
+        cursor: 'pointer',
+        transition: 'background 0.1s',
+      }}
+    >
+      {/* Priorité */}
+      <span
+        style={{
+          color: priorityCfg.color,
+          display: 'flex',
+          alignItems: 'center',
+          flexShrink: 0,
+        }}
+        title={priorityCfg.label}
+      >
+        {priorityCfg.icon}
+      </span>
+
+      {/* Statut */}
+      <span
+        style={{
+          color: statusCfg.color,
+          display: 'flex',
+          alignItems: 'center',
+          flexShrink: 0,
+        }}
+      >
+        {statusCfg.icon}
+      </span>
+
+      {/* ID */}
+      <span
+        style={{
+          fontSize: '11px',
+          color: textMuted,
+          fontWeight: 500,
+          flexShrink: 0,
+          minWidth: '60px',
+        }}
+      >
+        {ticket.id}
+      </span>
+
+      {/* Titre */}
+      <span
+        style={{
+          fontSize: '13px',
+          color: textMain,
+          flex: 1,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          opacity: ticket.status === 'resolu' ? 0.5 : 1,
+          textDecoration: ticket.status === 'resolu' ? 'line-through' : 'none',
+        }}
+      >
+        {ticket.title}
+      </span>
+
+      {/* VM active badge */}
+      {ticket.vmActive && (
+        <span
+          style={{
+            fontSize: '10px',
+            padding: '1px 6px',
+            borderRadius: '4px',
+            background: 'rgba(48,164,108,0.12)',
+            color: '#30a46c',
+            fontWeight: 600,
+            flexShrink: 0,
+          }}
+        >
+          ● VM active
+        </span>
+      )}
+
+      {/* Compétence */}
+      <span
+        style={{
+          fontSize: '10px',
+          padding: '1px 6px',
+          borderRadius: '4px',
+          background: 'rgba(0,85,229,0.1)',
+          color: '#4d8fff',
+          fontWeight: 500,
+          flexShrink: 0,
+        }}
+      >
+        {ticket.competence}
+      </span>
+
+      {/* Date */}
+      <span
+        style={{
+          fontSize: '11px',
+          color: textMuted,
+          flexShrink: 0,
+          minWidth: '72px',
+          textAlign: 'right',
+        }}
+      >
+        {ticket.updatedAt}
+      </span>
+    </div>
+  );
+}
+
+// --- PAGE PRINCIPALE ---
+export default function MyTickets() {
+  const { dark, startSession } = useContext(LayoutCtx);
+  const navigate = useNavigate();
+
+  const border = dark ? '#1f1f1f' : '#e8e8e5';
+  const bg = dark ? '#0e0f11' : '#f7f7f9';
+  const textMain = dark ? '#ededed' : '#111113';
+  const textMuted = dark ? '#8a8a93' : '#6b6b6b';
+
+  const grouped: Record<TicketStatus, Ticket[]> = {
+    'en-cours': MOCK_TICKETS.filter((t) => t.status === 'en-cours'),
+    'a-faire': MOCK_TICKETS.filter((t) => t.status === 'a-faire'),
+    resolu: MOCK_TICKETS.filter((t) => t.status === 'resolu'),
+    annule: MOCK_TICKETS.filter((t) => t.status === 'annule'),
+  };
+
+  const handleTicketClick = async (ticket: Ticket) => {
+    await startSession(ticket.incidentId);
+    navigate({
+      to: '/tickets/$incidentId',
+      params: { incidentId: ticket.incidentId },
+    });
+  };
+
+  return (
+    <div
+      style={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        background: bg,
+        fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif',
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          height: '48px',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 16px',
+          borderBottom: `1px solid ${border}`,
+          gap: '10px',
+          flexShrink: 0,
+        }}
+      >
+        <span style={{ fontSize: '13px', fontWeight: 600, color: textMain }}>
+          Mes tickets
+        </span>
+        <span
+          style={{
+            fontSize: '11px',
+            color: textMuted,
+            background: dark ? '#ffffff0f' : '#0000000a',
+            padding: '1px 7px',
+            borderRadius: '10px',
+          }}
+        >
+          {
+            MOCK_TICKETS.filter(
+              (t) => t.status !== 'resolu' && t.status !== 'annule',
+            ).length
+          }{' '}
+          actifs
+        </span>
+      </div>
+
+      {/* Colonne headers */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '6px 16px 6px 32px',
+          borderBottom: `1px solid ${border}`,
+          background: dark ? '#0c0c0d' : '#fafaf9',
+        }}
+      >
+        <span
+          style={{ fontSize: '10px', color: textMuted, minWidth: '12px' }}
+        />
+        <span
+          style={{ fontSize: '10px', color: textMuted, minWidth: '12px' }}
+        />
+        <span
+          style={{
+            fontSize: '10px',
+            color: textMuted,
+            minWidth: '60px',
+            fontWeight: 600,
+            letterSpacing: '0.4px',
+          }}
+        >
+          ID
+        </span>
+        <span
+          style={{
+            fontSize: '10px',
+            color: textMuted,
+            flex: 1,
+            fontWeight: 600,
+            letterSpacing: '0.4px',
+          }}
+        >
+          TITRE
+        </span>
+        <span
+          style={{
+            fontSize: '10px',
+            color: textMuted,
+            fontWeight: 600,
+            letterSpacing: '0.4px',
+          }}
+        >
+          MIS À JOUR
+        </span>
+      </div>
+
+      {/* Liste groupée */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <TicketGroup
+          status="en-cours"
+          tickets={grouped['en-cours']}
+          dark={dark}
+          onTicketClick={handleTicketClick}
+        />
+        <TicketGroup
+          status="a-faire"
+          tickets={grouped['a-faire']}
+          dark={dark}
+          onTicketClick={handleTicketClick}
+        />
+        <TicketGroup
+          status="resolu"
+          tickets={grouped['resolu']}
+          dark={dark}
+          onTicketClick={handleTicketClick}
+        />
+        <TicketGroup
+          status="annule"
+          tickets={grouped['annule']}
+          dark={dark}
+          onTicketClick={handleTicketClick}
+        />
+      </div>
+    </div>
+  );
+}
