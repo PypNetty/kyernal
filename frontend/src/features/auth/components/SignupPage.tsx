@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { useState, type FocusEvent, type FormEvent } from 'react';
 import KyernalLogo from '../../landing/components/KyernalLogo';
 import { THEMES } from '../../landing/theme/landingTheme';
-import { useLogin } from '../hooks/useLogin';
+import { useSignup } from '../hooks/useSignup';
 
 const inputFocusHandlers = (
   t: (typeof THEMES)['dark'],
@@ -16,25 +16,34 @@ const inputFocusHandlers = (
   },
 });
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [mode, setMode] = useState<'dark' | 'light'>('light');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [btnHovered, setBtnHovered] = useState(false);
   const t = THEMES[mode];
-  const loginMutation = useLogin();
+  const signupMutation = useSignup();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    loginMutation.mutate({ email, password });
+    if (password !== confirmPassword) {
+      return;
+    }
+    signupMutation.mutate({ email, password });
   };
 
+  const passwordMismatch =
+    confirmPassword.length > 0 && password !== confirmPassword;
+
   const errorMessage =
-    loginMutation.error instanceof Error
-      ? loginMutation.error.message
-      : loginMutation.isError
-        ? 'Connexion impossible. Réessayez.'
-        : null;
+    signupMutation.error instanceof Error
+      ? signupMutation.error.message
+      : signupMutation.isError
+        ? 'Création de compte impossible. Réessayez.'
+        : passwordMismatch
+          ? 'Les mots de passe ne correspondent pas.'
+          : null;
 
   return (
     <div
@@ -160,7 +169,7 @@ export default function LoginPage() {
                 color: t.text,
               }}
             >
-              Connexion
+              Créer un compte
             </h1>
             <p
               style={{
@@ -170,7 +179,7 @@ export default function LoginPage() {
                 lineHeight: 1.5,
               }}
             >
-              Accédez à votre espace Kyernal
+              Rejoignez Kyernal et commencez à pratiquer sur de vraies infrastructures.
             </p>
           </div>
 
@@ -181,7 +190,7 @@ export default function LoginPage() {
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label
-                htmlFor="login-email"
+                htmlFor="signup-email"
                 style={{
                   fontSize: '10px',
                   color: t.textMuted,
@@ -189,17 +198,17 @@ export default function LoginPage() {
                   letterSpacing: '0.3px',
                 }}
               >
-                IDENTIFIANT ÉCOLE OU ENTREPRISE
+                ADRESSE E-MAIL
               </label>
               <input
-                id="login-email"
+                id="signup-email"
                 type="email"
                 required
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nom@infrastructure.fr"
-                disabled={loginMutation.isPending}
+                disabled={signupMutation.isPending}
                 style={{
                   width: '100%',
                   height: '40px',
@@ -218,49 +227,65 @@ export default function LoginPage() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <div
+              <label
+                htmlFor="signup-password"
                 style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  fontSize: '10px',
+                  color: t.textMuted,
+                  fontWeight: 600,
+                  letterSpacing: '0.3px',
                 }}
               >
-                <label
-                  htmlFor="login-password"
-                  style={{
-                    fontSize: '10px',
-                    color: t.textMuted,
-                    fontWeight: 600,
-                    letterSpacing: '0.3px',
-                  }}
-                >
-                  MOT DE PASSE
-                </label>
-                <button
-                  type="button"
-                  disabled
-                  title="Bientôt disponible"
-                  style={{
-                    fontSize: '10px',
-                    color: t.textFaint,
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    cursor: 'not-allowed',
-                  }}
-                >
-                  Oublié ?
-                </button>
-              </div>
+                MOT DE PASSE
+              </label>
               <input
-                id="login-password"
+                id="signup-password"
                 type="password"
                 required
-                autoComplete="current-password"
+                minLength={8}
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="8 caractères minimum"
+                disabled={signupMutation.isPending}
+                style={{
+                  width: '100%',
+                  height: '40px',
+                  padding: '0 16px',
+                  borderRadius: '7px',
+                  border: `1px solid ${t.inputBorder}`,
+                  background: t.inputBg,
+                  color: t.text,
+                  fontSize: '13px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  fontFamily: 'inherit',
+                }}
+                {...inputFocusHandlers(t)}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label
+                htmlFor="signup-confirm"
+                style={{
+                  fontSize: '10px',
+                  color: t.textMuted,
+                  fontWeight: 600,
+                  letterSpacing: '0.3px',
+                }}
+              >
+                CONFIRMER LE MOT DE PASSE
+              </label>
+              <input
+                id="signup-confirm"
+                type="password"
+                required
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                disabled={loginMutation.isPending}
+                disabled={signupMutation.isPending}
                 style={{
                   width: '100%',
                   height: '40px',
@@ -295,7 +320,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loginMutation.isPending}
+              disabled={signupMutation.isPending || passwordMismatch}
               onMouseEnter={() => setBtnHovered(true)}
               onMouseLeave={() => setBtnHovered(false)}
               style={{
@@ -306,23 +331,23 @@ export default function LoginPage() {
                 border: 'none',
                 fontSize: '13px',
                 fontWeight: 600,
-                cursor: loginMutation.isPending ? 'wait' : 'pointer',
-                opacity: loginMutation.isPending ? 0.7 : btnHovered ? 0.88 : 1,
+                cursor: signupMutation.isPending ? 'wait' : 'pointer',
+                opacity: signupMutation.isPending ? 0.7 : btnHovered ? 0.88 : 1,
                 transition: 'opacity 0.15s',
                 marginTop: '4px',
               }}
             >
-              {loginMutation.isPending ? 'Connexion…' : "S'authentifier"}
+              {signupMutation.isPending ? 'Création…' : 'Créer mon compte'}
             </button>
           </form>
 
           <p style={{ margin: 0, fontSize: '12px', color: t.textSub, textAlign: 'center' }}>
-            Pas encore de compte ?{' '}
+            Déjà un compte ?{' '}
             <Link
-              to="/signup"
+              to="/login"
               style={{ color: t.text, fontWeight: 600, textDecoration: 'none' }}
             >
-              Créer un compte
+              Se connecter
             </Link>
           </p>
         </div>

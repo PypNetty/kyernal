@@ -140,6 +140,22 @@ const IconShield = () => (
   </svg>
 );
 
+const IconBack = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="19" y1="12" x2="5" y2="12" />
+    <polyline points="12 19 5 12 12 5" />
+  </svg>
+);
+
 // --- NAV CONFIG ---
 const MAIN_NAV = [
   {
@@ -312,6 +328,7 @@ export default function Sidebar({
 
       {/* Nav */}
       <div style={{ flex: 1, overflowY: 'auto', paddingTop: '12px' }}>
+        <NavItem icon={<IconBack />} label="Retour au dashboard" to="/home" />
         {MAIN_NAV.map((item) => (
           <NavItem
             key={item.id}
