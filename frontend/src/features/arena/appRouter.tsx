@@ -3,6 +3,7 @@ import {
   createRoute,
   createRootRoute,
   Outlet,
+  redirect,
 } from '@tanstack/react-router';
 import React, { useContext } from 'react';
 import { Allotment } from 'allotment';
@@ -19,6 +20,13 @@ import SkillTreePanel from './skills/components/SkillTreePanel';
 import { DocsPanel } from './docs';
 import TicketPanel from './tickets/components/TicketPanel';
 import TerminalPanel from './tickets/components/TerminalPanel';
+import {
+  FormationSelectPage,
+  getStoredSession,
+  hasSelectedFormation,
+  LoginPage,
+  ProfilePage,
+} from '../auth';
 import { Landing } from '../landing';
 
 function RootPage() {
@@ -136,18 +144,86 @@ function StatistiquePage() {
 function AutonomiePage() {
   return <PlaceholderPage name="Score d'autonomie" />;
 }
+function ProfilePageRoute() {
+  return <ProfilePage />;
+}
 
 const rootRoute = createRootRoute({ component: RootPage });
 const arenaLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'arena-layout',
   component: Layout,
+  beforeLoad: ({ location }) => {
+    const session = getStoredSession();
+    const safeRedirect = location.href.startsWith('/')
+      ? location.href
+      : '/inbox';
+
+    if (!session) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: safeRedirect },
+      });
+    }
+
+    if (!hasSelectedFormation(session)) {
+      throw redirect({
+        to: '/formation',
+        search: { redirect: safeRedirect },
+      });
+    }
+  },
 });
 
 const landingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: Landing,
+});
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect:
+      typeof search.redirect === 'string' && search.redirect.startsWith('/')
+        ? search.redirect
+        : '/inbox',
+  }),
+  beforeLoad: ({ search }) => {
+    const session = getStoredSession();
+    if (!session) return;
+    if (hasSelectedFormation(session)) {
+      throw redirect({ to: search.redirect });
+    }
+    throw redirect({ to: '/formation', search: { redirect: search.redirect } });
+  },
+  component: LoginPage,
+});
+
+const formationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/formation',
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect:
+      typeof search.redirect === 'string' && search.redirect.startsWith('/')
+        ? search.redirect
+        : '/inbox',
+    change: search.change === '1' || search.change === 1 || search.change === true,
+  }),
+  beforeLoad: ({ search }) => {
+    const session = getStoredSession();
+    if (!session) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: search.redirect },
+      });
+    }
+    if (hasSelectedFormation(session) && !search.change) {
+      throw redirect({ to: search.redirect });
+    }
+  },
+  component: FormationSelectPage,
 });
 
 const inboxRoute = createRoute({
@@ -158,11 +234,15 @@ const inboxRoute = createRoute({
 const ticketsRoute = createRoute({
   getParentRoute: () => arenaLayoutRoute,
   path: '/tickets',
+});
+const ticketsIndexRoute = createRoute({
+  getParentRoute: () => ticketsRoute,
+  path: '/',
   component: MyTicketsPage,
 });
 const ticketDetailRoute = createRoute({
-  getParentRoute: () => arenaLayoutRoute,
-  path: '/tickets/$incidentId',
+  getParentRoute: () => ticketsRoute,
+  path: '$incidentId',
   component: TicketDetailPage,
 });
 const reviewsRoute = createRoute({
@@ -200,13 +280,19 @@ const autonomyRoute = createRoute({
   path: '/autonomie',
   component: AutonomiePage,
 });
+const profileRoute = createRoute({
+  getParentRoute: () => arenaLayoutRoute,
+  path: '/profil',
+  component: ProfilePageRoute,
+});
 
 const routeTree = rootRoute.addChildren([
   landingRoute,
+  loginRoute,
+  formationRoute,
   arenaLayoutRoute.addChildren([
     inboxRoute,
-    ticketsRoute,
-    ticketDetailRoute,
+    ticketsRoute.addChildren([ticketsIndexRoute, ticketDetailRoute]),
     reviewsRoute,
     pulseRoute,
     skillsRoute,
@@ -214,6 +300,7 @@ const routeTree = rootRoute.addChildren([
     docsRoute,
     insightsRoute,
     autonomyRoute,
+    profileRoute,
   ]),
 ]);
 
