@@ -3,6 +3,7 @@ import { Outlet, useRouterState } from '@tanstack/react-router';
 import { useAuth } from '../../../auth';
 import { usePresenceSync } from '../../../auth/hooks/usePresenceSync';
 import { UserProfile } from '../context/types';
+import { useAppTheme } from '../context/AppTheme';
 import Sidebar from './Sidebar';
 
 // --- NOUVEAU LOGO ---
@@ -226,8 +227,8 @@ export const LayoutCtx = React.createContext<LayoutContext>(
 );
 
 export default function Layout() {
-  const [dark, setDark] = useState(true);
-  const [vertical, setVertical] = useState(false);
+  const { dark, toggleDark } = useAppTheme();
+  const [vertical, setVertical] = React.useState(false);
   const [vmHost, setVmHost] = useState<string | undefined>(undefined);
   const [vmId, setVmId] = useState<number | undefined>(undefined);
   const [loading, setLoading] = useState(false);
@@ -456,7 +457,7 @@ export default function Layout() {
               </IconBtn>
             )}
             <IconBtn
-              onClick={() => setDark(!dark)}
+              onClick={() => toggleDark()}
               title={dark ? 'Mode clair' : 'Mode sombre'}
               dark={dark}
             >

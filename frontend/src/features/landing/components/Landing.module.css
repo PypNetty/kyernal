@@ -341,6 +341,18 @@
   font-weight: 500;
 }
 
+.videoEmbed {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: calc(100% - 40px);
+  border: none;
+  background: #000;
+}
+
 .section {
   max-width: 1000px;
   width: 100%;

@@ -39,12 +39,44 @@ export async function login(
   }
 
   const storedPassword = getStoredPassword(email);
-  if (storedPassword !== null && storedPassword !== password) {
+  if (storedPassword === null) {
+    throw new Error('Compte introuvable. Créez un compte pour continuer.');
+  }
+  if (storedPassword !== password) {
     throw new Error('Mot de passe incorrect.');
   }
-  if (storedPassword === null) {
-    setStoredPassword(email, password);
+
+  const session: AuthSession = {
+    token: `mock-${crypto.randomUUID()}`,
+    email,
+    user: deriveLearnerProfileFromEmail(email),
+  };
+
+  setStoredSession(session);
+  return session;
+}
+
+export async function signup(
+  credentials: LoginCredentials,
+): Promise<AuthSession> {
+  await delay(300);
+
+  const email = credentials.email.trim().toLowerCase();
+  const password = credentials.password;
+
+  if (!email.includes('@')) {
+    throw new Error('Adresse e-mail invalide.');
   }
+  if (password.trim().length < 8) {
+    throw new Error('Le mot de passe doit contenir au moins 8 caractères.');
+  }
+
+  const storedPassword = getStoredPassword(email);
+  if (storedPassword !== null) {
+    throw new Error('Un compte existe déjà avec cette adresse e-mail.');
+  }
+
+  setStoredPassword(email, password);
 
   const session: AuthSession = {
     token: `mock-${crypto.randomUUID()}`,
