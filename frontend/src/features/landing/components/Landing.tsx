@@ -1,11 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import KyernalLogo from './KyernalLogo';
-import Waitlist from './Waitlist';
 import { THEMES } from '../theme/landingTheme';
 
 export default function Landing() {
   const [mode, setMode] = useState<'dark' | 'light'>('light');
+  const [ctaHovered, setCtaHovered] = useState(false);
   const t = THEMES[mode];
 
   return (
@@ -23,15 +23,11 @@ export default function Landing() {
       <div
         style={{
           position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
+          inset: 0,
           backgroundImage: `linear-gradient(${t.gridColor} 1px, transparent 1px), linear-gradient(90deg, ${t.gridColor} 1px, transparent 1px)`,
           backgroundSize: '40px 40px',
           opacity: 0.4,
           zIndex: 0,
-          transition: 'opacity 0.3s',
         }}
       />
       <div
@@ -63,7 +59,6 @@ export default function Landing() {
           alignItems: 'center',
           padding: '0 28px',
           justifyContent: 'space-between',
-          transition: 'background 0.3s',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -94,12 +89,12 @@ export default function Landing() {
               textDecoration: 'none',
               display: 'flex',
               alignItems: 'center',
-              cursor: 'pointer',
             }}
           >
             Se connecter
           </Link>
           <button
+            type="button"
             onClick={() => setMode((m) => (m === 'dark' ? 'light' : 'dark'))}
             style={{
               width: '32px',
@@ -121,7 +116,7 @@ export default function Landing() {
         </div>
       </nav>
 
-      <div
+      <main
         style={{
           position: 'relative',
           zIndex: 1,
@@ -134,47 +129,20 @@ export default function Landing() {
           textAlign: 'center',
         }}
       >
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '6px 14px',
-            borderRadius: '100px',
-            background: t.badgeBg,
-            border: `1px solid ${t.badgeBorder}`,
-            fontSize: '11px',
-            color: t.textSub,
-            marginBottom: '36px',
-            backdropFilter: 'blur(10px)',
-          }}
-        >
-          <div
-            style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: '#30a46c',
-              boxShadow: '0 0 8px #30a46c',
-            }}
-          />
-          Simulation d'infrastructure · Accès anticipé
-        </div>
-
         <h1
           style={{
             fontSize: 'clamp(38px, 6vw, 66px)',
             fontWeight: 700,
             letterSpacing: '-2.5px',
             lineHeight: 1.02,
-            margin: '0 0 20px 0',
+            margin: '0 0 20px',
             color: t.text,
             maxWidth: '720px',
           }}
         >
-          Ne postulez plus à l'aveugle.
+          La plateforme qui simule
           <br />
-          <span style={{ color: t.textMuted }}>Prouvez-le.</span>
+          <span style={{ color: t.textMuted }}>votre futur poste.</span>
         </h1>
 
         <p
@@ -182,29 +150,38 @@ export default function Landing() {
             fontSize: '16px',
             color: t.textSub,
             lineHeight: 1.65,
-            margin: '0 0 16px 0',
-            maxWidth: '500px',
+            margin: '0 0 40px',
+            maxWidth: '520px',
           }}
         >
-          Klixy analyse l'offre d'emploi de vos rêves.
+          Entraînez-vous sur des environnements réalistes avant le jour J.
+          Rejoignez la liste d'attente pour un accès anticipé.
         </p>
-        <p
+
+        <Link
+          to="/waitlist"
+          onMouseEnter={() => setCtaHovered(true)}
+          onMouseLeave={() => setCtaHovered(false)}
           style={{
-            fontSize: '16px',
-            color: t.textMuted,
-            lineHeight: 1.65,
-            margin: '0 0 52px 0',
-            maxWidth: '500px',
+            height: '44px',
+            padding: '0 24px',
+            borderRadius: '8px',
+            background: t.btnPrimary,
+            color: t.btnPrimaryText,
+            fontSize: '14px',
+            fontWeight: 600,
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            opacity: ctaHovered ? 0.88 : 1,
+            transition: 'opacity 0.15s',
           }}
         >
-          Kyernal génère l'infrastructure exacte pour vous tester avant
-          l'entretien.
-        </p>
+          Rejoindre la waitlist
+        </Link>
+      </main>
 
-        <Waitlist t={t} />
-      </div>
-
-      <div
+      <footer
         style={{
           position: 'absolute',
           bottom: 0,
@@ -218,29 +195,16 @@ export default function Landing() {
           borderTop: `1px solid ${t.borderMuted}`,
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '7px',
-            opacity: 0.6,
-          }}
-        >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', opacity: 0.6 }}>
           <KyernalLogo size={13} dark={mode === 'light'} />
           <span style={{ fontSize: '11px', color: t.textMuted, fontWeight: 500 }}>
             Kyernal
           </span>
         </div>
-        <span
-          style={{
-            fontSize: '10px',
-            color: t.textFaint,
-            fontFamily: 'monospace',
-          }}
-        >
+        <span style={{ fontSize: '10px', color: t.textFaint, fontFamily: 'monospace' }}>
           France · RGPD · 2026
         </span>
-      </div>
+      </footer>
     </div>
   );
 }
