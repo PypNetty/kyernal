@@ -1,0 +1,9 @@
+.env
+.env.*
+*.key
+*.pem
+id_ed25519*
+id_rsa*
+**/credentials*
+*.token
+secrets/
