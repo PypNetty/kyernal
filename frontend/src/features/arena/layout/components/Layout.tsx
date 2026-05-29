@@ -390,7 +390,7 @@ export default function Layout() {
               opacity: 0.8,
             }}
           >
-            Klixy Node
+            {currentUser.organization ?? 'Formation'}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
