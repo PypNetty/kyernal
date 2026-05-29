@@ -24,5 +24,8 @@ export interface TicketData {
 export interface UserProfile {
   name: string;
   initials: string;
+  /** Rôle métier de l'utilisateur connecté (ex. parcours apprenant). */
   role: string;
+  /** Organisation / espace de formation affiché en en-tête de sidebar. */
+  organization?: string;
 }

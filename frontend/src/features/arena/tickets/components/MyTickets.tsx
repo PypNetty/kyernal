@@ -517,10 +517,7 @@ export default function MyTickets() {
 
   const handleTicketClick = async (ticket: Ticket) => {
     await startSession(ticket.incidentId);
-    navigate({
-      to: '/tickets/$incidentId',
-      params: { incidentId: ticket.incidentId },
-    });
+    navigate({ href: `/tickets/${ticket.incidentId}` });
   };
 
   return (

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useRouterState } from '@tanstack/react-router';
+import { useAuth } from '../../../auth';
 import { UserProfile } from '../context/types';
 import Sidebar from './Sidebar';
 
@@ -237,11 +238,8 @@ export default function Layout() {
   const isInsideTicketDetail =
     routerState.location.pathname.startsWith('/tickets/');
 
-  const currentUser: UserProfile = {
-    name: 'Henryck Paris',
-    initials: 'HP',
-    role: 'Admin Linux DevOps',
-  };
+  const { data: session, isLoading: authLoading } = useAuth();
+  const currentUser: UserProfile | undefined = session?.user;
 
   const border = dark ? '#1c1c1e' : '#e4e4e7';
   const bg = dark ? '#09090b' : '#fafafa';
@@ -315,6 +313,26 @@ export default function Layout() {
       {label}
     </button>
   );
+
+  if (authLoading || !currentUser) {
+    return (
+      <div
+        style={{
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: bg,
+          color: textMuted,
+          fontSize: '13px',
+          fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif',
+        }}
+      >
+        Chargement…
+      </div>
+    );
+  }
 
   return (
     <LayoutCtx.Provider

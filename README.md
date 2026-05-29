@@ -1,8 +1,8 @@
-# Klixy
+# Kyernal
 
-> La plateforme de formation IT qui place l'apprenant dans les conditions réelles du terrain.
+> Ne postulez plus à l'aveugle. Prouvez-le.
 
-Klixy est un environnement de travail immersif pour les futurs administrateurs systèmes et développeurs. L'apprenant reçoit un ticket d'incident, lance un lab en quelques secondes, et résout le problème dans un vrai terminal — comme en entreprise.
+Kyernal est une plateforme de simulation d'infrastructure IT pour la formation professionnelle et l'évaluation technique. Klixy analyse l'offre d'emploi de vos rêves: Kyernal génère l'infrastructure exacte pour vous tester avant l'entretien.
 
 Hébergé en France. Conforme RGPD. Pensé pour les certifications professionnelles françaises.
 
@@ -10,19 +10,19 @@ Hébergé en France. Conforme RGPD. Pensé pour les certifications professionnel
 
 ## Le problème
 
-En formation IT à distance, les apprenants pratiquent chez eux. Les formateurs ne voient rien.
+Les formations IT échouent sur un point simple.
 
-Qui a vraiment fait les exercices ? Qui bloque depuis deux heures sans oser demander ? Personne ne sait.
+Les apprenants savent quoi faire en théorie. Ils ne savent jamais comment réagir en situation réelle. Pas de contexte, pas de pression, pas de logs réalistes, pas de vraie infra, pas de logique d'incident.
 
-Les apprenants bricolent avec des VMs locales, arrivent en examen sans avoir jamais pratiqué dans de bonnes conditions. Les organismes Qualiopi doivent justifier que leurs apprenants pratiquent vraiment — aujourd'hui ils ne peuvent pas le prouver.
+Résultat : ils "connaissent les outils", mais paniquent devant un vrai ticket.
 
 ---
 
 ## La solution
 
-L'apprenant ouvre Klixy Arena. Un ticket l'attend. Il clique. Un environnement isolé est prêt en moins de 3 secondes.
+Un ticket arrive. Une VM éphémère est provisionnée en moins de 3 secondes. Une panne est injectée. L'apprenant enquête dans un vrai terminal. **Klixy**, l'agent IA intégré, observe, guide et analyse. Sans jamais donner la réponse.
 
-Il dispose d'un terminal interactif, d'un ticket structuré avec ses objectifs, et d'un agent IA qui l'accompagne sans lui donner les réponses. Quand c'est résolu, les métriques sont capturées — temps, autonomie, commandes clés.
+Quand c'est résolu : score d'autonomie, XP, prochaine compétence débloquée.
 
 Zéro installation. Zéro configuration. Juste la pratique.
 
@@ -30,92 +30,52 @@ Zéro installation. Zéro configuration. Juste la pratique.
 
 ## Les modules
 
-### Klixy Arena
+### Kyernal Arena
 Labs pratiques en conditions réelles pour les apprenants.
 
 - Environnement isolé provisionné automatiquement à chaque session
 - Incidents réalistes injectés selon le ticket sélectionné
 - Terminal SSH interactif dans le navigateur
-- Agent IA mentor — indices contextuels, jamais les réponses
-- Validation automatique des objectifs
-- Score d'autonomie calculé à chaque session
+- Klixy: agent IA mentor, indices contextuels, jamais les réponses
+- Arbre de compétences interactif: progression non linéaire par dépendances
+- Score d'autonomie et XP calculés à chaque session
 
-### Klixy Edu *(MVP — septembre 2026)*
+### Kyernal Edu 
 Tableau de bord pédagogique pour les formateurs et organismes.
 
-- Vue en temps réel sur chaque apprenant
-- Historique complet des sessions — commandes, hésitations, erreurs
-- Traçabilité pédagogique complète — argument Qualiopi
+- Suivi en temps réel de chaque apprenant
+- Historique complet des sessions: commandes, hésitations, erreurs
+- Traçabilité pédagogique complète: argument Qualiopi
 - Gestion de promos, données supprimées en fin de formation
 
-### Klixy Pro *(v1 — début 2027)*
+### Kyernal Pro 
 Évaluation technique pour les recruteurs.
 
-- Le recruteur crée un test technique réaliste en quelques minutes
-- Le candidat reçoit un lien — environnement prêt en 30 secondes
+- Colle une offre d'emploi: Klixy analyse le JD et sélectionne le scénario
+- Le candidat reçoit un lien: environnement prêt en 30 secondes
 - Rapport complet : score d'autonomie, commandes, temps de résolution
-- Replay de la session
+- Replay de session complet
 
 ---
 
 ## Certifications ciblées
 
-- TSSR — Technicien Supérieur Systèmes et Réseaux
-- DWWM — Développeur Web et Web Mobile
-- AIS — Administrateur d'Infrastructures Sécurisées
+- TSSR: Technicien Supérieur Systèmes et Réseaux
+- AIS: Administrateur d'Infrastructures Sécurisées
 - Bachelor DevOps
-- CDA — Concepteur Développeur d'Applications
-
----
-
-## Modèle économique
-
-| Offre | Public | Tarif |
-|---|---|---|
-| Gratuit | Apprenant individuel | 2h/mois, 1 lab Linux |
-| Pro | Apprenant individuel | 12€/mois |
-| Pro + Windows | Apprenant individuel | 17€/mois |
-| Organisme | AFPA, Studi, CFA, OpenClassrooms... | Sur devis |
-| Recruteur | Test unitaire | 29–49€/test |
-| Recruteur | Abonnement illimité | 299€/mois |
-
----
-
-## Roadmap
-
-### POC — Juillet 2026
-Klixy Arena uniquement — prouver que le concept fonctionne.
-
-- Accueil personnalisé sans compte
-- Provisionnement d'environnement en moins de 3 secondes
-- Incidents injectés automatiquement selon le ticket
-- Terminal interactif dans le navigateur
-- Agent IA vocal — l'apprenant parle, l'agent guide
-- Validation automatique des objectifs
-- Métriques de session capturées
-
-### MVP — Septembre 2026
-- Authentification et compte persistant
-- **Klixy Edu** — dashboard formateur complet
-- Notifications formateur en temps réel
-- Paiement en ligne
-
-### v1 — Début 2027
-- **Klixy Pro** — évaluation recruteurs
-- Labs Windows Server
-- Gestion de promos
-- Support N1 automatisé
+- DWWM: Développeur Web et Web Mobile
+- CDA: Concepteur Développeur d'Applications
 
 ---
 
 ## Statut
 
-🧪 POC Klixy Arena en cours de développement — livraison prévue juillet 2026.
+🧪 POC Kyernal Arena en cours de développement
 
 ---
 
 ## Contact
 
-- Site : [klixy.fr](https://klixy.fr) *(à venir)*
+- Site : [kyernal.fr](https://kyernal.fr) *(à venir)*
 - LinkedIn : [PypNetty](https://linkedin.com/in/pypnetty)
 - GitHub : [github.com/PypNetty](https://github.com/PypNetty)
