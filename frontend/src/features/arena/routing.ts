@@ -1,12 +1,17 @@
 export const POST_AUTH_HOME = '/home' as const;
 export const UNAUTHENTICATED_REDIRECT = '/' as const;
 
+function isSafeRelativePath(path: string): boolean {
+  return path.startsWith('/') && !path.startsWith('//');
+}
+
 export function parseAuthRedirect(search: Record<string, unknown>): string {
-  return typeof search.redirect === 'string' && search.redirect.startsWith('/')
-    ? search.redirect
+  const redirect = search.redirect;
+  return typeof redirect === 'string' && isSafeRelativePath(redirect)
+    ? redirect
     : POST_AUTH_HOME;
 }
 
 export function safeRedirectPath(href: string): string {
-  return href.startsWith('/') ? href : POST_AUTH_HOME;
+  return isSafeRelativePath(href) ? href : POST_AUTH_HOME;
 }

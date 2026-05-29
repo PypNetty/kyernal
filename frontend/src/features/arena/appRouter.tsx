@@ -30,18 +30,10 @@ import {
 } from '../auth';
 import { PublicLanding } from '../landing';
 import { HomeLayout, HomePanel } from './home';
-import {
-  parseAuthRedirect,
-  POST_AUTH_HOME,
-  safeRedirectPath,
-} from './routing';
+import { parseAuthRedirect, safeRedirectPath } from './routing';
 
 function RootPage() {
   return <Outlet />;
-}
-
-function HomePage() {
-  return <HomePanel />;
 }
 
 function InboxPage() {
@@ -281,7 +273,7 @@ const formationRoute = createRoute({
 const homeRoute = createRoute({
   getParentRoute: () => homeLayoutRoute,
   path: '/home',
-  component: HomePage,
+  component: HomePanel,
 });
 
 const inboxRoute = createRoute({

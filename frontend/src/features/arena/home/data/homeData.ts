@@ -1,7 +1,5 @@
-import { MOCK_MESSAGES, type InboxMessage } from '../../inbox/data/inboxData';
 import {
   computeNodeStatus,
-  DOMAIN_COLORS,
   getCurrentLevel,
   getTotalXp,
   MOCK_PROGRESS,
@@ -43,19 +41,6 @@ export interface ProgressSnapshot {
   totalLabs: number;
   inProgressLab: string | null;
   domainProgress: { domain: NodeDomain; done: number; total: number }[];
-}
-
-export type FeedItemSource = 'inbox' | 'activity';
-
-export interface HomeFeedItem {
-  id: string;
-  source: FeedItemSource;
-  title: string;
-  preview: string;
-  timestamp: string;
-  href: string;
-  accent?: string;
-  unread?: boolean;
 }
 
 function incidentRouteId(incidentId: string): string {
@@ -164,51 +149,3 @@ export function getProgressSnapshot(): ProgressSnapshot {
   };
 }
 
-const ACTIVITY_FEED: HomeFeedItem[] = [
-  {
-    id: 'act-1',
-    source: 'activity',
-    title: 'Indice demandé',
-    preview: 'Commande pour lister les processus sur un port · INC-042',
-    timestamp: '09:29',
-    href: '/activite',
-    accent: '#f59e0b',
-  },
-  {
-    id: 'act-2',
-    source: 'activity',
-    title: 'Retour formateur',
-    preview: 'Marc Lefebvre a commenté ta session INC-035',
-    timestamp: 'Hier',
-    href: '/retours',
-    accent: '#30a46c',
-  },
-];
-
-function inboxToFeedItem(message: InboxMessage): HomeFeedItem {
-  return {
-    id: `inbox-${message.id}`,
-    source: 'inbox',
-    title: message.subject,
-    preview: message.preview,
-    timestamp: message.timestamp,
-    href: '/inbox',
-    accent: message.fromColor,
-    unread: message.status === 'unread',
-  };
-}
-
-export function getMiniFeed(limit = 5): HomeFeedItem[] {
-  const inboxItems = [...MOCK_MESSAGES]
-    .sort((a, b) => {
-      if (a.status === 'unread' && b.status !== 'unread') return -1;
-      if (b.status === 'unread' && a.status !== 'unread') return 1;
-      return 0;
-    })
-    .slice(0, 3)
-    .map(inboxToFeedItem);
-
-  return [...inboxItems, ...ACTIVITY_FEED].slice(0, limit);
-}
-
-export { DOMAIN_COLORS };
