@@ -175,16 +175,24 @@ const arenaLayoutRoute = createRoute({
   },
 });
 
-const landingRoute = createRoute({
+const waitlistRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  component: Waitlist,
+});
+
+const landingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/landing',
   component: Landing,
 });
 
-const waitlistRoute = createRoute({
+const waitlistLegacyRedirectRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/waitlist',
-  component: Waitlist,
+  beforeLoad: () => {
+    throw redirect({ to: '/' });
+  },
 });
 
 const loginRoute = createRoute({
@@ -293,8 +301,9 @@ const profileRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  landingRoute,
   waitlistRoute,
+  landingRoute,
+  waitlistLegacyRedirectRoute,
   loginRoute,
   formationRoute,
   arenaLayoutRoute.addChildren([

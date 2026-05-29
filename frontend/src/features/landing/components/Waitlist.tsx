@@ -4,7 +4,12 @@ import KyernalLogo from './KyernalLogo';
 import WaitlistForm from './WaitlistForm';
 import { THEMES } from '../theme/landingTheme';
 
-const NAV_ITEMS = ['Fonctionnalités', 'Tarifs', 'Pour les organismes', 'Docs'];
+const NAV_ITEMS = [
+  { label: 'Fonctionnalités', hash: 'fonctionnalites' },
+  { label: 'Tarifs', hash: 'tarifs' },
+  { label: 'Pour les organismes', hash: 'organismes' },
+  { label: 'Docs', hash: 'docs' },
+] as const;
 
 export default function Waitlist() {
   const [mode, setMode] = useState<'dark' | 'light'>('light');
@@ -87,10 +92,11 @@ export default function Waitlist() {
           }}
           className="waitlist-nav-links"
         >
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
+          {NAV_ITEMS.map(({ label, hash }) => (
+            <Link
+              key={hash}
+              to="/landing"
+              hash={hash}
               style={{
                 fontSize: '13px',
                 color: t.textSub,
@@ -98,8 +104,8 @@ export default function Waitlist() {
                 fontWeight: 500,
               }}
             >
-              {item}
-            </a>
+              {label}
+            </Link>
           ))}
         </div>
 
