@@ -1,12 +1,15 @@
 import {
   clearStoredSession,
+  getStoredPassword,
   getStoredSession,
+  setStoredPassword,
   setStoredSession,
 } from '../lib/authStorage';
 import { getFormationById } from '../data/formations';
 import { deriveLearnerProfileFromEmail } from '../lib/learnerProfile';
 import type {
   AuthSession,
+  ChangePasswordInput,
   LoginCredentials,
   SelectFormationInput,
 } from '../types';
@@ -28,6 +31,14 @@ export async function login(
   }
   if (!password.trim()) {
     throw new Error('Mot de passe requis.');
+  }
+
+  const storedPassword = getStoredPassword(email);
+  if (storedPassword !== null && storedPassword !== password) {
+    throw new Error('Mot de passe incorrect.');
+  }
+  if (storedPassword === null) {
+    setStoredPassword(email, password);
   }
 
   const session: AuthSession = {
@@ -72,6 +83,38 @@ export async function selectFormation(
 
   setStoredSession(updated);
   return updated;
+}
+
+export async function changePassword(
+  input: ChangePasswordInput,
+): Promise<void> {
+  await delay(200);
+
+  const session = getStoredSession();
+  if (!session) {
+    throw new Error('Session expirée. Reconnectez-vous.');
+  }
+
+  const currentPassword = input.currentPassword.trim();
+  const newPassword = input.newPassword.trim();
+  const confirmPassword = input.confirmPassword.trim();
+
+  if (!currentPassword) {
+    throw new Error('Mot de passe actuel requis.');
+  }
+  if (newPassword.length < 8) {
+    throw new Error('Le nouveau mot de passe doit contenir au moins 8 caractères.');
+  }
+  if (newPassword !== confirmPassword) {
+    throw new Error('Les mots de passe ne correspondent pas.');
+  }
+
+  const storedPassword = getStoredPassword(session.email);
+  if (storedPassword !== null && storedPassword !== currentPassword) {
+    throw new Error('Mot de passe actuel incorrect.');
+  }
+
+  setStoredPassword(session.email, newPassword);
 }
 
 export function logout(): void {

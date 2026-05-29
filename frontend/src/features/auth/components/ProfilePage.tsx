@@ -1,8 +1,9 @@
 import { Link } from '@tanstack/react-router';
-import { useContext } from 'react';
+import { useContext, useState, type FormEvent } from 'react';
 import { LayoutCtx } from '../../arena/layout/components/Layout';
 import { getFormationById } from '../data/formations';
 import { useAuth } from '../hooks/useAuth';
+import { useChangePassword } from '../hooks/useChangePassword';
 import { useLogout } from '../hooks/useLogout';
 
 function InfoRow({
@@ -48,10 +49,68 @@ function InfoRow({
   );
 }
 
+function PasswordField({
+  id,
+  label,
+  value,
+  onChange,
+  dark,
+  border,
+  textMain,
+  textMuted,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  dark: boolean;
+  border: string;
+  textMain: string;
+  textMuted: string;
+}) {
+  return (
+    <label style={{ display: 'block', marginBottom: '14px' }}>
+      <span
+        style={{
+          display: 'block',
+          marginBottom: '6px',
+          fontSize: '12px',
+          color: textMuted,
+        }}
+      >
+        {label}
+      </span>
+      <input
+        id={id}
+        type="password"
+        autoComplete={id === 'new-password' ? 'new-password' : 'current-password'}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          width: '100%',
+          boxSizing: 'border-box',
+          padding: '10px 12px',
+          borderRadius: '8px',
+          border: `1px solid ${border}`,
+          background: dark ? '#0e0f11' : '#ffffff',
+          color: textMain,
+          fontSize: '13px',
+          outline: 'none',
+        }}
+      />
+    </label>
+  );
+}
+
 export default function ProfilePage() {
   const { dark } = useContext(LayoutCtx);
   const { data: session } = useAuth();
   const logoutMutation = useLogout();
+  const changePasswordMutation = useChangePassword();
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   const user = session?.user;
   const email = session?.email ?? '—';
@@ -65,6 +124,29 @@ export default function ProfilePage() {
   const textMain = dark ? '#ededed' : '#111113';
   const textMuted = dark ? '#8a8a93' : '#6b6b6b';
   const cardBg = dark ? '#141416' : '#f7f7f9';
+
+  const passwordError =
+    changePasswordMutation.error instanceof Error
+      ? changePasswordMutation.error.message
+      : changePasswordMutation.isError
+        ? 'Impossible de modifier le mot de passe.'
+        : null;
+
+  const handlePasswordSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setPasswordSuccess(false);
+    changePasswordMutation.mutate(
+      { currentPassword, newPassword, confirmPassword },
+      {
+        onSuccess: () => {
+          setCurrentPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+          setPasswordSuccess(true);
+        },
+      },
+    );
+  };
 
   if (!user) return null;
 
@@ -200,6 +282,107 @@ export default function ProfilePage() {
               Actif
             </span>
           </div>
+        </div>
+
+        <div
+          style={{
+            background: cardBg,
+            border: `1px solid ${border}`,
+            borderRadius: '10px',
+            padding: '24px',
+            marginBottom: '20px',
+          }}
+        >
+          <h2
+            style={{
+              margin: '0 0 4px',
+              fontSize: '15px',
+              fontWeight: 600,
+              color: textMain,
+            }}
+          >
+            Mot de passe
+          </h2>
+          <p style={{ margin: '0 0 20px', fontSize: '13px', color: textMuted }}>
+            Modifiez le mot de passe utilisé pour vous connecter.
+          </p>
+
+          <form onSubmit={handlePasswordSubmit}>
+            <PasswordField
+              id="current-password"
+              label="Mot de passe actuel"
+              value={currentPassword}
+              onChange={setCurrentPassword}
+              dark={dark}
+              border={border}
+              textMain={textMain}
+              textMuted={textMuted}
+            />
+            <PasswordField
+              id="new-password"
+              label="Nouveau mot de passe"
+              value={newPassword}
+              onChange={setNewPassword}
+              dark={dark}
+              border={border}
+              textMain={textMain}
+              textMuted={textMuted}
+            />
+            <PasswordField
+              id="confirm-password"
+              label="Confirmer le nouveau mot de passe"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              dark={dark}
+              border={border}
+              textMain={textMain}
+              textMuted={textMuted}
+            />
+
+            {passwordError && (
+              <p
+                style={{
+                  margin: '0 0 12px',
+                  fontSize: '12px',
+                  color: '#ef4444',
+                }}
+              >
+                {passwordError}
+              </p>
+            )}
+
+            {passwordSuccess && (
+              <p
+                style={{
+                  margin: '0 0 12px',
+                  fontSize: '12px',
+                  color: '#30a46c',
+                }}
+              >
+                Mot de passe mis à jour.
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={changePasswordMutation.isPending}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: '#0055e5',
+                color: '#fff',
+                fontSize: '13px',
+                fontWeight: 500,
+                cursor: changePasswordMutation.isPending ? 'wait' : 'pointer',
+                opacity: changePasswordMutation.isPending ? 0.7 : 1,
+              }}
+            >
+              {changePasswordMutation.isPending
+                ? 'Enregistrement…'
+                : 'Changer le mot de passe'}
+            </button>
+          </form>
         </div>
 
         <Link

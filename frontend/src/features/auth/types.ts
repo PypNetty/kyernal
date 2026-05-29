@@ -17,3 +17,9 @@ export interface SelectFormationInput {
   formationId: string;
   learningGoal?: string;
 }
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

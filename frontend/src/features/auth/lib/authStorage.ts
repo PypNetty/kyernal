@@ -3,6 +3,31 @@ import { getFormationById } from '../data/formations';
 import { normalizeStoredUser } from './learnerProfile';
 
 const STORAGE_KEY = 'kyernal.auth';
+const PASSWORDS_KEY = 'kyernal.auth.passwords';
+
+type PasswordStore = Record<string, string>;
+
+function readPasswordStore(): PasswordStore {
+  try {
+    const raw = localStorage.getItem(PASSWORDS_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as PasswordStore;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+export function getStoredPassword(email: string): string | null {
+  const password = readPasswordStore()[email.trim().toLowerCase()];
+  return typeof password === 'string' ? password : null;
+}
+
+export function setStoredPassword(email: string, password: string): void {
+  const store = readPasswordStore();
+  store[email.trim().toLowerCase()] = password;
+  localStorage.setItem(PASSWORDS_KEY, JSON.stringify(store));
+}
 
 function normalizeStoredSession(session: AuthSession): AuthSession {
   const user = normalizeStoredUser(session.user);
