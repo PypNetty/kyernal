@@ -1,25 +1,99 @@
 import { Link } from '@tanstack/react-router';
-import { useContext, useState, type FormEvent } from 'react';
+import { useContext, useState, type CSSProperties, type FormEvent } from 'react';
 import { LayoutCtx } from '../../arena/layout/components/Layout';
 import { getFormationById } from '../data/formations';
 import { useAuth } from '../hooks/useAuth';
 import { useChangePassword } from '../hooks/useChangePassword';
 import { useLogout } from '../hooks/useLogout';
 
-function InfoRow({
-  label,
-  value,
-  dark,
-  border,
-  textMain,
-  textMuted,
-}: {
-  label: string;
-  value: string;
-  dark: boolean;
+type ProfileTheme = {
+  bg: string;
   border: string;
   textMain: string;
   textMuted: string;
+  cardBg: string;
+  inputBg: string;
+  hoverBg: string;
+  btnPrimaryBg: string;
+  btnPrimaryText: string;
+};
+
+function getProfileTheme(dark: boolean): ProfileTheme {
+  return {
+    bg: dark ? '#0e0f11' : '#ffffff',
+    border: dark ? '#27282b' : '#e8e8e5',
+    textMain: dark ? '#ededed' : '#111113',
+    textMuted: dark ? '#8a8a93' : '#6b6b6b',
+    cardBg: dark ? '#141416' : '#f7f7f9',
+    inputBg: dark ? '#0e0f11' : '#ffffff',
+    hoverBg: dark ? '#ffffff0a' : '#00000008',
+    btnPrimaryBg: dark ? '#ededed' : '#111113',
+    btnPrimaryText: dark ? '#111113' : '#fafafa',
+  };
+}
+
+function Card({
+  children,
+  theme,
+  style,
+}: {
+  children: React.ReactNode;
+  theme: ProfileTheme;
+  style?: CSSProperties;
+}) {
+  return (
+    <div
+      style={{
+        background: theme.cardBg,
+        border: `1px solid ${theme.border}`,
+        borderRadius: '10px',
+        padding: '24px',
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SectionTitle({
+  title,
+  description,
+  theme,
+}: {
+  title: string;
+  description?: string;
+  theme: ProfileTheme;
+}) {
+  return (
+    <>
+      <h2
+        style={{
+          margin: '0 0 4px',
+          fontSize: '15px',
+          fontWeight: 600,
+          color: theme.textMain,
+        }}
+      >
+        {title}
+      </h2>
+      {description && (
+        <p style={{ margin: '0 0 20px', fontSize: '13px', color: theme.textMuted }}>
+          {description}
+        </p>
+      )}
+    </>
+  );
+}
+
+function InfoRow({
+  label,
+  value,
+  theme,
+}: {
+  label: string;
+  value: string;
+  theme: ProfileTheme;
 }) {
   return (
     <div
@@ -29,17 +103,17 @@ function InfoRow({
         alignItems: 'baseline',
         gap: '16px',
         padding: '12px 0',
-        borderBottom: `1px solid ${border}`,
+        borderBottom: `1px solid ${theme.border}`,
       }}
     >
-      <span style={{ fontSize: '12px', color: textMuted, flexShrink: 0 }}>
+      <span style={{ fontSize: '12px', color: theme.textMuted, flexShrink: 0 }}>
         {label}
       </span>
       <span
         style={{
           fontSize: '13px',
           fontWeight: 500,
-          color: textMain,
+          color: theme.textMain,
           textAlign: 'right',
         }}
       >
@@ -54,19 +128,13 @@ function PasswordField({
   label,
   value,
   onChange,
-  dark,
-  border,
-  textMain,
-  textMuted,
+  theme,
 }: {
   id: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
-  dark: boolean;
-  border: string;
-  textMain: string;
-  textMuted: string;
+  theme: ProfileTheme;
 }) {
   return (
     <label style={{ display: 'block', marginBottom: '14px' }}>
@@ -75,7 +143,7 @@ function PasswordField({
           display: 'block',
           marginBottom: '6px',
           fontSize: '12px',
-          color: textMuted,
+          color: theme.textMuted,
         }}
       >
         {label}
@@ -86,24 +154,138 @@ function PasswordField({
         autoComplete={id === 'new-password' ? 'new-password' : 'current-password'}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor = theme.textMuted;
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor = theme.border;
+        }}
         style={{
           width: '100%',
           boxSizing: 'border-box',
-          padding: '10px 12px',
+          height: '40px',
+          padding: '0 12px',
           borderRadius: '8px',
-          border: `1px solid ${border}`,
-          background: dark ? '#0e0f11' : '#ffffff',
-          color: textMain,
+          border: `1px solid ${theme.border}`,
+          background: theme.inputBg,
+          color: theme.textMain,
           fontSize: '13px',
           outline: 'none',
+          transition: 'border-color 0.15s',
         }}
       />
     </label>
   );
 }
 
+function ProfileButton({
+  children,
+  onClick,
+  type = 'button',
+  variant = 'secondary',
+  disabled,
+  theme,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  type?: 'button' | 'submit';
+  variant?: 'primary' | 'secondary' | 'danger';
+  disabled?: boolean;
+  theme: ProfileTheme;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  const styles: Record<'primary' | 'secondary' | 'danger', CSSProperties> = {
+    primary: {
+      background: theme.btnPrimaryBg,
+      color: theme.btnPrimaryText,
+      border: 'none',
+    },
+    secondary: {
+      background: hovered ? theme.hoverBg : 'transparent',
+      color: theme.textMain,
+      border: `1px solid ${theme.border}`,
+    },
+    danger: {
+      background: hovered ? 'rgba(239,68,68,0.08)' : 'transparent',
+      color: '#ef4444',
+      border: `1px solid ${theme.border}`,
+    },
+  };
+
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '40px',
+        padding: '0 16px',
+        borderRadius: '8px',
+        fontSize: '13px',
+        fontWeight: 500,
+        cursor: disabled ? 'wait' : 'pointer',
+        opacity: disabled ? 0.6 : 1,
+        transition: 'background 0.15s, opacity 0.15s',
+        ...styles[variant],
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function ProfileLinkButton({
+  to,
+  search,
+  children,
+  theme,
+}: {
+  to: string;
+  search?: Record<string, string>;
+  children: React.ReactNode;
+  theme: ProfileTheme;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <Link
+      to={to}
+      search={search}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '40px',
+        padding: '0 16px',
+        borderRadius: '8px',
+        border: `1px solid ${theme.border}`,
+        background: hovered ? theme.hoverBg : 'transparent',
+        color: theme.textMain,
+        fontSize: '13px',
+        fontWeight: 500,
+        textDecoration: 'none',
+        boxSizing: 'border-box',
+        transition: 'background 0.15s',
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
+
 export default function ProfilePage() {
   const { dark } = useContext(LayoutCtx);
+  const theme = getProfileTheme(dark);
   const { data: session } = useAuth();
   const logoutMutation = useLogout();
   const changePasswordMutation = useChangePassword();
@@ -118,12 +300,6 @@ export default function ProfilePage() {
     ? getFormationById(session.formationId)
     : undefined;
   const ccps = formation?.ccps.join(' · ') ?? '—';
-
-  const bg = dark ? '#0e0f11' : '#ffffff';
-  const border = dark ? '#27282b' : '#e8e8e5';
-  const textMain = dark ? '#ededed' : '#111113';
-  const textMuted = dark ? '#8a8a93' : '#6b6b6b';
-  const cardBg = dark ? '#141416' : '#f7f7f9';
 
   const passwordError =
     changePasswordMutation.error instanceof Error
@@ -159,30 +335,24 @@ export default function ProfilePage() {
         fontFamily: '-apple-system, BlinkMacSystemFont, Inter, sans-serif',
       }}
     >
-      <div style={{ maxWidth: '560px' }}>
-        <h1
-          style={{
-            margin: '0 0 4px',
-            fontSize: '20px',
-            fontWeight: 600,
-            color: textMain,
-          }}
-        >
-          Mon profil
-        </h1>
-        <p style={{ margin: '0 0 28px', fontSize: '13px', color: textMuted }}>
-          Informations de votre compte apprenant
-        </p>
+      <div style={{ maxWidth: '560px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div>
+          <h1
+            style={{
+              margin: '0 0 4px',
+              fontSize: '20px',
+              fontWeight: 600,
+              color: theme.textMain,
+            }}
+          >
+            Mon profil
+          </h1>
+          <p style={{ margin: 0, fontSize: '13px', color: theme.textMuted }}>
+            Informations de votre compte apprenant
+          </p>
+        </div>
 
-        <div
-          style={{
-            background: cardBg,
-            border: `1px solid ${border}`,
-            borderRadius: '10px',
-            padding: '24px',
-            marginBottom: '20px',
-          }}
-        >
+        <Card theme={theme}>
           <div
             style={{
               display: 'flex',
@@ -213,52 +383,28 @@ export default function ProfilePage() {
                 style={{
                   fontSize: '16px',
                   fontWeight: 600,
-                  color: textMain,
+                  color: theme.textMain,
                   marginBottom: '4px',
                 }}
               >
                 {user.name}
               </div>
-              <div style={{ fontSize: '12px', color: textMuted }}>
+              <div style={{ fontSize: '12px', color: theme.textMuted }}>
                 {user.role}
               </div>
             </div>
           </div>
 
-          <InfoRow
-            label="E-mail"
-            value={email}
-            dark={dark}
-            border={border}
-            textMain={textMain}
-            textMuted={textMuted}
-          />
+          <InfoRow label="E-mail" value={email} theme={theme} />
           <InfoRow
             label="Formation"
             value={user.organization ?? '—'}
-            dark={dark}
-            border={border}
-            textMain={textMain}
-            textMuted={textMuted}
+            theme={theme}
           />
           {session?.learningGoal && (
-            <InfoRow
-              label="Objectif"
-              value={session.learningGoal}
-              dark={dark}
-              border={border}
-              textMain={textMain}
-              textMuted={textMuted}
-            />
+            <InfoRow label="Objectif" value={session.learningGoal} theme={theme} />
           )}
-          <InfoRow
-            label="Blocs visés"
-            value={ccps}
-            dark={dark}
-            border={border}
-            textMain={textMain}
-            textMuted={textMuted}
-          />
+          <InfoRow label="Blocs visés" value={ccps} theme={theme} />
           <div
             style={{
               display: 'flex',
@@ -268,7 +414,7 @@ export default function ProfilePage() {
               padding: '12px 0 0',
             }}
           >
-            <span style={{ fontSize: '12px', color: textMuted }}>Statut</span>
+            <span style={{ fontSize: '12px', color: theme.textMuted }}>Statut</span>
             <span
               style={{
                 fontSize: '11px',
@@ -282,30 +428,14 @@ export default function ProfilePage() {
               Actif
             </span>
           </div>
-        </div>
+        </Card>
 
-        <div
-          style={{
-            background: cardBg,
-            border: `1px solid ${border}`,
-            borderRadius: '10px',
-            padding: '24px',
-            marginBottom: '20px',
-          }}
-        >
-          <h2
-            style={{
-              margin: '0 0 4px',
-              fontSize: '15px',
-              fontWeight: 600,
-              color: textMain,
-            }}
-          >
-            Mot de passe
-          </h2>
-          <p style={{ margin: '0 0 20px', fontSize: '13px', color: textMuted }}>
-            Modifiez le mot de passe utilisé pour vous connecter.
-          </p>
+        <Card theme={theme}>
+          <SectionTitle
+            title="Mot de passe"
+            description="Modifiez le mot de passe utilisé pour vous connecter."
+            theme={theme}
+          />
 
           <form onSubmit={handlePasswordSubmit}>
             <PasswordField
@@ -313,110 +443,74 @@ export default function ProfilePage() {
               label="Mot de passe actuel"
               value={currentPassword}
               onChange={setCurrentPassword}
-              dark={dark}
-              border={border}
-              textMain={textMain}
-              textMuted={textMuted}
+              theme={theme}
             />
             <PasswordField
               id="new-password"
               label="Nouveau mot de passe"
               value={newPassword}
               onChange={setNewPassword}
-              dark={dark}
-              border={border}
-              textMain={textMain}
-              textMuted={textMuted}
+              theme={theme}
             />
             <PasswordField
               id="confirm-password"
               label="Confirmer le nouveau mot de passe"
               value={confirmPassword}
               onChange={setConfirmPassword}
-              dark={dark}
-              border={border}
-              textMain={textMain}
-              textMuted={textMuted}
+              theme={theme}
             />
 
             {passwordError && (
-              <p
-                style={{
-                  margin: '0 0 12px',
-                  fontSize: '12px',
-                  color: '#ef4444',
-                }}
-              >
+              <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#ef4444' }}>
                 {passwordError}
               </p>
             )}
 
             {passwordSuccess && (
-              <p
-                style={{
-                  margin: '0 0 12px',
-                  fontSize: '12px',
-                  color: '#30a46c',
-                }}
-              >
+              <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#30a46c' }}>
                 Mot de passe mis à jour.
               </p>
             )}
 
-            <button
+            <ProfileButton
               type="submit"
+              variant="primary"
               disabled={changePasswordMutation.isPending}
-              style={{
-                padding: '10px 16px',
-                borderRadius: '8px',
-                border: 'none',
-                background: '#0055e5',
-                color: '#fff',
-                fontSize: '13px',
-                fontWeight: 500,
-                cursor: changePasswordMutation.isPending ? 'wait' : 'pointer',
-                opacity: changePasswordMutation.isPending ? 0.7 : 1,
-              }}
+              theme={theme}
             >
               {changePasswordMutation.isPending
                 ? 'Enregistrement…'
-                : 'Changer le mot de passe'}
-            </button>
+                : 'Enregistrer le mot de passe'}
+            </ProfileButton>
           </form>
-        </div>
+        </Card>
 
-        <Link
-          to="/formation"
-          search={{ redirect: '/profil', change: '1' }}
-          style={{
-            display: 'inline-block',
-            marginBottom: '12px',
-            fontSize: '13px',
-            color: '#0055e5',
-            textDecoration: 'none',
-          }}
-        >
-          Changer de formation
-        </Link>
+        <Card theme={theme}>
+          <SectionTitle
+            title="Compte"
+            description="Gérez votre parcours et votre session."
+            theme={theme}
+          />
 
-        <button
-          type="button"
-          onClick={() => logoutMutation.mutate()}
-          disabled={logoutMutation.isPending}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '8px',
-            border: `1px solid ${border}`,
-            background: bg,
-            color: '#ef4444',
-            fontSize: '13px',
-            fontWeight: 500,
-            cursor: logoutMutation.isPending ? 'wait' : 'pointer',
-            opacity: logoutMutation.isPending ? 0.7 : 1,
-          }}
-        >
-          {logoutMutation.isPending ? 'Déconnexion…' : 'Se déconnecter'}
-        </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <ProfileLinkButton
+              to="/formation"
+              search={{ redirect: '/profil', change: '1' }}
+              theme={theme}
+            >
+              Changer de formation
+            </ProfileLinkButton>
+
+            <ProfileButton
+              variant="danger"
+              disabled={logoutMutation.isPending}
+              onClick={() => logoutMutation.mutate()}
+              theme={theme}
+            >
+              {logoutMutation.isPending ? 'Déconnexion…' : 'Se déconnecter'}
+            </ProfileButton>
+          </div>
+        </Card>
       </div>
     </div>
   );
