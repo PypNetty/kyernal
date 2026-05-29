@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useState, type CSSProperties } from 'react';
 import KyernalLogo from './KyernalLogo';
+import { LANDING_VIDEO_URL } from '../config';
 import { THEMES } from '../theme/landingTheme';
 import styles from './Landing.module.css';
 
@@ -9,7 +10,6 @@ type Mode = 'dark' | 'light';
 const NAV_LINKS = [
   { label: 'Fonctionnalités', href: '#fonctionnalites' },
   { label: 'Tarifs', href: '#tarifs' },
-  // TODO: convertir en <Link> quand les routes /organismes et /docs existeront.
   { label: 'Pour les organismes', href: '/organismes' },
   { label: 'Docs', href: '/docs' },
 ] as const;
@@ -20,17 +20,15 @@ const FEATURES = [
     desc: "Pas de simulateurs factices. Déployez de véritables environnements Linux isolés pour bidouiller vos noyaux ou configurer vos réseaux en conditions réelles.",
   },
   {
-    title: "Agent d'accompagnement Vocal",
+    title: "Agent d'accompagnement vocal",
     desc: "Bloqué sur la configuration d'un reverse proxy ? Notre IA analyse votre terminal en temps réel et vous guide vocalement sans vous donner la réponse toute cuite.",
   },
   {
     title: 'Détection de frustration',
-    desc: "Klixy repère les commandes répétées qui échouent. Le système ajuste la difficulté ou vous suggère une piste avant que vous n'abandonniez.",
+    desc: "Kyernal repère les commandes répétées qui échouent. Le système ajuste la difficulté ou vous suggère une piste avant que vous n'abandonniez.",
   },
 ] as const;
 
-// Pose les couleurs de THEMES[mode] comme variables CSS sur la racine.
-// landingTheme.ts reste la source de vérité ; tout le CSS consomme var(--xxx).
 function getThemeVars(mode: Mode): CSSProperties {
   const t = THEMES[mode];
   return {
@@ -58,10 +56,10 @@ function Nav({ mode, onToggle }: { mode: Mode; onToggle: () => void }) {
   return (
     <nav className={styles.nav}>
       <div className={styles.navLeft}>
-        <div className={styles.brand}>
+        <Link to="/" className={styles.brand}>
           <KyernalLogo size={20} dark={mode === 'light'} />
-          <span className={styles.brandName}>Klixy</span>
-        </div>
+          <span className={styles.brandName}>Kyernal</span>
+        </Link>
         <div className={styles.navLinks}>
           {NAV_LINKS.map((link) => (
             <a key={link.label} href={link.href} className={styles.navLink}>
@@ -81,10 +79,10 @@ function Nav({ mode, onToggle }: { mode: Mode; onToggle: () => void }) {
           {mode === 'dark' ? '☀' : '◐'}
         </button>
         <Link to="/login" className={`${styles.btnSecondary} ${styles.navBtn}`}>
-          Connexion
+          Se connecter
         </Link>
-        <Link to="/" className={`${styles.btnPrimary} ${styles.navBtnPrimary}`}>
-          Commencer gratuitement
+        <Link to="/signup" className={`${styles.btnPrimary} ${styles.navBtnPrimary}`}>
+          Créer un compte
         </Link>
       </div>
     </nav>
@@ -100,23 +98,26 @@ function Hero() {
       </div>
 
       <h1 className={styles.title}>
-        La pratique pure.
+        Voilà ce qui se passe.
         <br />
-        <span className={styles.titleMuted}>Oubliez les QCM.</span>
+        <span className={styles.titleMuted}>La pratique pure.</span>
       </h1>
 
       <p className={styles.subtitle}>
-        Klixy génère des infrastructures réelles à la volée. Préparez vos titres TSSR, vos
-        certifications DevOps et vos entretiens techniques sur de véritables environnements Linux
-        isolés.
+        Kyernal génère des infrastructures réelles à la volée. Préparez vos titres TSSR,
+        vos certifications DevOps et vos entretiens techniques sur de véritables
+        environnements Linux isolés.
       </p>
 
       <div className={styles.ctaRow}>
-        <Link to="/" className={`${styles.btnPrimary} ${styles.ctaBtn}`}>
-          Lancer ma première Arena
+        <Link to="/signup" className={`${styles.btnPrimary} ${styles.ctaBtn}`}>
+          Créer un compte
+        </Link>
+        <Link to="/login" className={`${styles.btnSecondary} ${styles.ctaBtn}`}>
+          Se connecter
         </Link>
         <a href="#demo" className={`${styles.btnSecondary} ${styles.ctaBtn}`}>
-          Voir comment ça marche
+          Voir la démo
         </a>
       </div>
     </section>
@@ -124,24 +125,32 @@ function Hero() {
 }
 
 function DemoVideo() {
+  const hasEmbed = LANDING_VIDEO_URL.length > 0;
+
   return (
     <div id="demo" className={styles.demo}>
       <div className={styles.demoChrome}>
         <span className={`${styles.dot} ${styles.dotRed}`} />
         <span className={`${styles.dot} ${styles.dotYellow}`} />
         <span className={`${styles.dot} ${styles.dotGreen}`} />
-        <span className={styles.demoCmd}>klixy start arena</span>
+        <span className={styles.demoCmd}>kyernal start arena</span>
       </div>
-      <div className={styles.demoCenter}>
-        <button
-          type="button"
-          className={styles.playBtn}
-          aria-label="Lire la vidéo de démonstration"
-        >
-          <span className={styles.playTriangle} />
-        </button>
-        <span className={styles.demoLabel}>Vidéo de démonstration (30s)</span>
-      </div>
+      {hasEmbed ? (
+        <iframe
+          className={styles.videoEmbed}
+          src={LANDING_VIDEO_URL}
+          title="Voilà ce qui se passe — démonstration Kyernal"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      ) : (
+        <div className={styles.demoCenter}>
+          <div className={styles.playBtn} aria-hidden="true">
+            <span className={styles.playTriangle} />
+          </div>
+          <span className={styles.demoLabel}>Vidéo de démonstration — bientôt disponible</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -186,7 +195,7 @@ function Pricing() {
             <li>✓ Environnements éphémères</li>
             <li>✓ Agent IA (Texte uniquement)</li>
           </ul>
-          <Link to="/" className={`${styles.btnSecondary} ${styles.priceBtn}`}>
+          <Link to="/signup" className={`${styles.btnSecondary} ${styles.priceBtn}`}>
             Créer un compte
           </Link>
         </div>
@@ -203,7 +212,7 @@ function Pricing() {
             <li>✓ Agent IA Vocal complet</li>
             <li>✓ Tableaux de bord de progression</li>
           </ul>
-          <Link to="/" className={`${styles.btnPrimary} ${styles.priceBtn}`}>
+          <Link to="/signup" className={`${styles.btnPrimary} ${styles.priceBtn}`}>
             Passer Pro
           </Link>
         </div>
@@ -214,7 +223,6 @@ function Pricing() {
 
 function Footer({ mode }: { mode: Mode }) {
   const productLinks = ['Arenas', 'Agent IA', 'Tarifs', 'Changelog'];
-  // TODO: ces pages légales doivent exister AVANT le lancement (obligation FR).
   const legalLinks = ['Mentions légales', 'CGU', 'CGV', 'Politique de confidentialité'];
 
   return (
@@ -223,7 +231,7 @@ function Footer({ mode }: { mode: Mode }) {
         <div>
           <div className={styles.footerBrand}>
             <KyernalLogo size={16} dark={mode === 'light'} />
-            <span className={styles.footerBrandName}>Klixy</span>
+            <span className={styles.footerBrandName}>Kyernal</span>
           </div>
           <p className={styles.footerTagline}>
             L'apprentissage de l'infrastructure par la pratique réelle.
@@ -254,14 +262,14 @@ function Footer({ mode }: { mode: Mode }) {
       </div>
 
       <div className={styles.footerBottom}>
-        <span className={styles.copyright}>© 2026 Klixy. Tous droits réservés.</span>
+        <span className={styles.copyright}>© 2026 Kyernal. Tous droits réservés.</span>
         <span className={styles.hosted}>Hébergé en France · RGPD</span>
       </div>
     </footer>
   );
 }
 
-export default function Landing() {
+export default function PublicLanding() {
   const [mode, setMode] = useState<Mode>('dark');
   const toggle = () => setMode((m) => (m === 'dark' ? 'light' : 'dark'));
 

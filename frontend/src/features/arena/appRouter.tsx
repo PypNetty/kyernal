@@ -26,11 +26,22 @@ import {
   hasSelectedFormation,
   LoginPage,
   ProfilePage,
+  SignupPage,
 } from '../auth';
-import { Landing, Waitlist } from '../landing';
+import { PublicLanding } from '../landing';
+import { HomeLayout, HomePanel } from './home';
+import {
+  parseAuthRedirect,
+  POST_AUTH_HOME,
+  safeRedirectPath,
+} from './routing';
 
 function RootPage() {
   return <Outlet />;
+}
+
+function HomePage() {
+  return <HomePanel />;
 }
 
 function InboxPage() {
@@ -148,43 +159,57 @@ function ProfilePageRoute() {
   return <ProfilePage />;
 }
 
+function requireAuthWithFormation({
+  location,
+}: {
+  location: { href: string };
+}) {
+  const session = getStoredSession();
+  const safeRedirect = safeRedirectPath(location.href);
+
+  if (!session) {
+    throw redirect({
+      to: '/login',
+      search: { redirect: safeRedirect },
+    });
+  }
+
+  if (!hasSelectedFormation(session)) {
+    throw redirect({
+      to: '/formation',
+      search: { redirect: safeRedirect },
+    });
+  }
+}
+
 const rootRoute = createRootRoute({ component: RootPage });
+
+const homeLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: 'home-layout',
+  component: HomeLayout,
+  beforeLoad: requireAuthWithFormation,
+});
+
 const arenaLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'arena-layout',
   component: Layout,
-  beforeLoad: ({ location }) => {
-    const session = getStoredSession();
-    const safeRedirect = location.href.startsWith('/')
-      ? location.href
-      : '/inbox';
-
-    if (!session) {
-      throw redirect({
-        to: '/login',
-        search: { redirect: safeRedirect },
-      });
-    }
-
-    if (!hasSelectedFormation(session)) {
-      throw redirect({
-        to: '/formation',
-        search: { redirect: safeRedirect },
-      });
-    }
-  },
+  beforeLoad: requireAuthWithFormation,
 });
 
-const waitlistRoute = createRoute({
+const publicLandingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: Waitlist,
+  component: PublicLanding,
 });
 
-const landingRoute = createRoute({
+const landingLegacyRedirectRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/landing',
-  component: Landing,
+  beforeLoad: () => {
+    throw redirect({ to: '/' });
+  },
 });
 
 const waitlistLegacyRedirectRoute = createRoute({
@@ -199,10 +224,7 @@ const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
   validateSearch: (search: Record<string, unknown>) => ({
-    redirect:
-      typeof search.redirect === 'string' && search.redirect.startsWith('/')
-        ? search.redirect
-        : '/inbox',
+    redirect: parseAuthRedirect(search),
   }),
   beforeLoad: ({ search }) => {
     const session = getStoredSession();
@@ -215,22 +237,38 @@ const loginRoute = createRoute({
   component: LoginPage,
 });
 
+const signupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/signup',
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: parseAuthRedirect(search),
+  }),
+  beforeLoad: ({ search }) => {
+    const session = getStoredSession();
+    if (!session) return;
+    if (hasSelectedFormation(session)) {
+      throw redirect({ to: search.redirect });
+    }
+    throw redirect({ to: '/formation', search: { redirect: search.redirect } });
+  },
+  component: SignupPage,
+});
+
 const formationRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/formation',
   validateSearch: (search: Record<string, unknown>) => ({
-    redirect:
-      typeof search.redirect === 'string' && search.redirect.startsWith('/')
-        ? search.redirect
-        : '/inbox',
+    redirect: parseAuthRedirect(search),
     change: search.change === '1' || search.change === 1 || search.change === true,
   }),
-  beforeLoad: ({ search }) => {
+  beforeLoad: ({ search, location }) => {
     const session = getStoredSession();
+    const safeRedirect = safeRedirectPath(location.href);
+
     if (!session) {
       throw redirect({
         to: '/login',
-        search: { redirect: search.redirect },
+        search: { redirect: safeRedirect },
       });
     }
     if (hasSelectedFormation(session) && !search.change) {
@@ -238,6 +276,12 @@ const formationRoute = createRoute({
     }
   },
   component: FormationSelectPage,
+});
+
+const homeRoute = createRoute({
+  getParentRoute: () => homeLayoutRoute,
+  path: '/home',
+  component: HomePage,
 });
 
 const inboxRoute = createRoute({
@@ -301,11 +345,13 @@ const profileRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  waitlistRoute,
-  landingRoute,
+  publicLandingRoute,
+  landingLegacyRedirectRoute,
   waitlistLegacyRedirectRoute,
   loginRoute,
+  signupRoute,
   formationRoute,
+  homeLayoutRoute.addChildren([homeRoute]),
   arenaLayoutRoute.addChildren([
     inboxRoute,
     ticketsRoute.addChildren([ticketsIndexRoute, ticketDetailRoute]),

@@ -14,7 +14,7 @@ export function useLogout() {
     onSuccess: () => {
       queryClient.setQueryData(authKeys.session(), null);
       queryClient.removeQueries({ queryKey: authKeys.all });
-      void navigate({ to: '/login' });
+      void navigate({ to: '/' });
     },
   });
 }
