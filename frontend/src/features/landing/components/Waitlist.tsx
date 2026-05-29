@@ -1,30 +1,34 @@
-import { Link } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useLayoutEffect } from 'react';
 import KyernalLogo from './KyernalLogo';
 import WaitlistForm from './WaitlistForm';
 import { THEMES } from '../theme/landingTheme';
 
-const NAV_ITEMS = [
-  { label: 'Fonctionnalités', hash: 'fonctionnalites' },
-  { label: 'Tarifs', hash: 'tarifs' },
-  { label: 'Pour les organismes', hash: 'organismes' },
-  { label: 'Docs', hash: 'docs' },
-] as const;
-
 export default function Waitlist() {
-  const [mode, setMode] = useState<'dark' | 'light'>('light');
-  const t = THEMES[mode];
+  const t = THEMES.light;
+
+  useLayoutEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlBg = html.style.background;
+    const prevBodyBg = body.style.background;
+    html.style.background = t.bg;
+    body.style.background = t.bg;
+    return () => {
+      html.style.background = prevHtmlBg;
+      body.style.background = prevBodyBg;
+    };
+  }, [t.bg]);
 
   return (
     <div
       style={{
+        width: '100%',
         minHeight: '100vh',
         background: t.bg,
         color: t.text,
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         position: 'relative',
-        overflow: 'hidden',
-        transition: 'background 0.3s, color 0.3s',
+        overflowX: 'hidden',
       }}
     >
       <div
@@ -51,106 +55,6 @@ export default function Waitlist() {
         }}
       />
 
-      <nav
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 100,
-          height: '56px',
-          borderBottom: `1px solid ${t.borderMuted}`,
-          background: t.navBg,
-          backdropFilter: 'blur(12px)',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 28px',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Link
-          to="/"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            textDecoration: 'none',
-            color: t.text,
-          }}
-        >
-          <KyernalLogo size={20} dark={mode === 'light'} />
-          <span style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '-0.2px' }}>
-            Kyernal
-          </span>
-        </Link>
-
-        <div
-          style={{
-            display: 'none',
-            alignItems: 'center',
-            gap: '24px',
-          }}
-          className="waitlist-nav-links"
-        >
-          {NAV_ITEMS.map(({ label, hash }) => (
-            <Link
-              key={hash}
-              to="/landing"
-              hash={hash}
-              style={{
-                fontSize: '13px',
-                color: t.textSub,
-                textDecoration: 'none',
-                fontWeight: 500,
-              }}
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Link
-            to="/login"
-            style={{
-              height: '32px',
-              padding: '0 14px',
-              borderRadius: '6px',
-              border: `1px solid ${t.border}`,
-              background: t.btnSecondaryBg,
-              color: t.btnSecondaryText,
-              fontSize: '13px',
-              fontWeight: 500,
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            Se connecter
-          </Link>
-          <button
-            type="button"
-            onClick={() => setMode((m) => (m === 'dark' ? 'light' : 'dark'))}
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '6px',
-              border: `1px solid ${t.border}`,
-              background: t.bgCard,
-              color: t.textMuted,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px',
-            }}
-            title={mode === 'dark' ? 'Mode clair' : 'Mode sombre'}
-          >
-            {mode === 'dark' ? '☀' : '◐'}
-          </button>
-        </div>
-      </nav>
-
       <main
         style={{
           position: 'relative',
@@ -160,7 +64,7 @@ export default function Waitlist() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '80px 24px',
+          padding: '48px 24px',
           textAlign: 'center',
         }}
       >
@@ -249,7 +153,7 @@ export default function Waitlist() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px', opacity: 0.6 }}>
-          <KyernalLogo size={13} dark={mode === 'light'} />
+          <KyernalLogo size={13} dark={true} />
           <span style={{ fontSize: '11px', color: t.textMuted, fontWeight: 500 }}>
             Kyernal
           </span>
@@ -258,14 +162,6 @@ export default function Waitlist() {
           France · RGPD · 2026
         </span>
       </footer>
-
-      <style>{`
-        @media (min-width: 768px) {
-          .waitlist-nav-links {
-            display: flex !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
