@@ -1,10 +1,16 @@
-import { Link } from '@tanstack/react-router';
-import { useContext, useState, type CSSProperties, type FormEvent } from 'react';
+import { useContext, useEffect, useState, type CSSProperties, type FormEvent } from 'react';
+import { useRouterState } from '@tanstack/react-router';
 import { LayoutCtx } from '../../arena/layout/components/Layout';
-import { getFormationById } from '../data/formations';
+import { FORMATIONS, getFormationById } from '../data/formations';
+import { getPresenceStatusMeta } from '../data/profileConfig';
+import { DndToggleIcon, PresenceStatusIcon } from './PresenceStatusIcon';
 import { useAuth } from '../hooks/useAuth';
 import { useChangePassword } from '../hooks/useChangePassword';
 import { useLogout } from '../hooks/useLogout';
+import { useSetDnd } from '../hooks/useSetDnd';
+import { useUpdateProfile } from '../hooks/useUpdateProfile';
+import { getPresenceActivityFromRoute } from '../lib/presenceStatus';
+import type { PresenceStatus } from '../types';
 
 type ProfileTheme = {
   bg: string;
@@ -241,71 +247,260 @@ function ProfileButton({
   );
 }
 
-function ProfileLinkButton({
-  to,
-  search,
-  children,
+function TextInput({
+  value,
+  onChange,
+  placeholder,
   theme,
 }: {
-  to: string;
-  search?: Record<string, string>;
-  children: React.ReactNode;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
   theme: ProfileTheme;
 }) {
-  const [hovered, setHovered] = useState(false);
-
   return (
-    <Link
-      to={to}
-      search={search}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      style={{
+        width: '100%',
+        boxSizing: 'border-box',
+        height: '40px',
+        padding: '0 12px',
+        borderRadius: '8px',
+        border: `1px solid ${theme.border}`,
+        background: theme.inputBg,
+        color: theme.textMain,
+        fontSize: '13px',
+        outline: 'none',
+      }}
+    />
+  );
+}
+
+function FieldLabel({
+  label,
+  theme,
+  children,
+}: {
+  label: string;
+  theme: ProfileTheme;
+  children: React.ReactNode;
+}) {
+  return (
+    <label style={{ display: 'block', marginBottom: '16px' }}>
+      <span
+        style={{
+          display: 'block',
+          marginBottom: '8px',
+          fontSize: '12px',
+          color: theme.textMuted,
+        }}
+      >
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function StatusBadge({
+  status,
+  dark,
+}: {
+  status: PresenceStatus;
+  dark: boolean;
+}) {
+  const meta = getPresenceStatusMeta(status);
+  return (
+    <span
       style={{
         display: 'inline-flex',
         alignItems: 'center',
+        gap: '5px',
+        fontSize: '11px',
+        fontWeight: 600,
+        color: meta.color,
+        background: dark ? meta.background : meta.background.replace('0.12', '0.18'),
+        padding: '3px 8px',
+        borderRadius: '4px',
+      }}
+    >
+      <span style={{ display: 'flex', lineHeight: 0 }} aria-hidden>
+        <PresenceStatusIcon status={status} />
+      </span>
+      {meta.label}
+    </span>
+  );
+}
+
+function DndIconButton({
+  active,
+  onClick,
+  disabled,
+  theme,
+}: {
+  active: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+  theme: ProfileTheme;
+}) {
+  const meta = getPresenceStatusMeta('dnd');
+
+  return (
+    <button
+      type="button"
+      title={active ? 'Désactiver ne pas déranger' : 'Ne pas déranger'}
+      aria-label={active ? 'Désactiver ne pas déranger' : 'Activer ne pas déranger'}
+      aria-pressed={active}
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        width: '26px',
+        height: '26px',
+        padding: 0,
+        borderRadius: '6px',
+        border: `1px solid ${active ? meta.color : theme.border}`,
+        background: active ? meta.background : 'transparent',
+        color: active ? meta.color : theme.textMuted,
+        cursor: disabled ? 'wait' : 'pointer',
+        display: 'inline-flex',
+        alignItems: 'center',
         justifyContent: 'center',
+        opacity: disabled ? 0.6 : 1,
+        flexShrink: 0,
+      }}
+    >
+      <DndToggleIcon />
+    </button>
+  );
+}
+
+function SelectInput({
+  value,
+  onChange,
+  theme,
+  children,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  theme: ProfileTheme;
+  children: React.ReactNode;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
         width: '100%',
         height: '40px',
-        padding: '0 16px',
+        padding: '0 12px',
         borderRadius: '8px',
         border: `1px solid ${theme.border}`,
-        background: hovered ? theme.hoverBg : 'transparent',
+        background: theme.inputBg,
         color: theme.textMain,
         fontSize: '13px',
-        fontWeight: 500,
-        textDecoration: 'none',
+        outline: 'none',
         boxSizing: 'border-box',
-        transition: 'background 0.15s',
       }}
     >
       {children}
-    </Link>
+    </select>
+  );
+}
+
+function TogglePill({
+  label,
+  selected,
+  onClick,
+  theme,
+  accent,
+}: {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+  theme: ProfileTheme;
+  accent?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        height: '26px',
+        padding: '0 8px',
+        borderRadius: '5px',
+        border: `1px solid ${selected ? (accent ?? theme.textMain) : theme.border}`,
+        background: selected
+          ? accent
+            ? `${accent}22`
+            : theme.hoverBg
+          : 'transparent',
+        color: selected ? theme.textMain : theme.textMuted,
+        fontSize: '11px',
+        fontWeight: selected ? 600 : 500,
+        cursor: 'pointer',
+        transition: 'border-color 0.15s, background 0.15s',
+      }}
+    >
+      {label}
+    </button>
   );
 }
 
 export default function ProfilePage() {
-  const { dark } = useContext(LayoutCtx);
+  const { dark, vmHost, showCourse } = useContext(LayoutCtx);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const theme = getProfileTheme(dark);
   const { data: session } = useAuth();
   const logoutMutation = useLogout();
   const changePasswordMutation = useChangePassword();
+  const updateProfileMutation = useUpdateProfile();
+  const setDndMutation = useSetDnd();
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
+  const [formationId, setFormationId] = useState('');
+  const [targetCcps, setTargetCcps] = useState<string[]>([]);
+  const [learningGoal, setLearningGoal] = useState('');
+  const [parcoursSuccess, setParcoursSuccess] = useState(false);
+
   const user = session?.user;
   const email = session?.email ?? '—';
-  const formation = session?.formationId
-    ? getFormationById(session.formationId)
-    : undefined;
-  const ccps = formation?.ccps.join(' · ') ?? '—';
+  const currentStatus = session?.presenceStatus ?? 'actif';
+  const currentStatusMeta = getPresenceStatusMeta(currentStatus);
+  const dndEnabled = session?.dndEnabled ?? false;
+  const routeActivity = getPresenceActivityFromRoute(pathname);
+  const selectedFormation = formationId ? getFormationById(formationId) : undefined;
+  const availableCcps = selectedFormation?.ccps ?? [];
+
+  useEffect(() => {
+    if (!session?.formationId) return;
+    const formation = getFormationById(session.formationId);
+    if (!formation) return;
+    setFormationId(session.formationId);
+    setTargetCcps(session.targetCcps ?? formation.ccps);
+    setLearningGoal(session.learningGoal ?? '');
+    setParcoursSuccess(false);
+  }, [session]);
 
   const passwordError =
     changePasswordMutation.error instanceof Error
       ? changePasswordMutation.error.message
       : changePasswordMutation.isError
         ? 'Impossible de modifier le mot de passe.'
+        : null;
+
+  const parcoursError =
+    updateProfileMutation.error instanceof Error
+      ? updateProfileMutation.error.message
+      : updateProfileMutation.isError
+        ? 'Impossible de mettre à jour le parcours.'
         : null;
 
   const handlePasswordSubmit = (e: FormEvent) => {
@@ -322,6 +517,50 @@ export default function ProfilePage() {
         },
       },
     );
+  };
+
+  const handleFormationChange = (nextFormationId: string) => {
+    setFormationId(nextFormationId);
+    const nextFormation = getFormationById(nextFormationId);
+    if (nextFormation) {
+      setTargetCcps([...nextFormation.ccps]);
+    }
+  };
+
+  const toggleCcp = (ccp: string) => {
+    setTargetCcps((prev) => {
+      if (prev.includes(ccp)) {
+        if (prev.length <= 1) return prev;
+        return prev.filter((item) => item !== ccp);
+      }
+      return [...prev, ccp].sort(
+        (a, b) => availableCcps.indexOf(a) - availableCcps.indexOf(b),
+      );
+    });
+  };
+
+  const handleParcoursSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setParcoursSuccess(false);
+    updateProfileMutation.mutate(
+      {
+        formationId,
+        targetCcps,
+        learningGoal: learningGoal.trim() || undefined,
+      },
+      { onSuccess: () => setParcoursSuccess(true) },
+    );
+  };
+
+  const toggleDnd = () => {
+    setDndMutation.mutate({
+      enabled: !dndEnabled,
+      activity: {
+        vmActive: Boolean(vmHost),
+        readingContent: showCourse || routeActivity.readingContent,
+        workingOnTicket: routeActivity.workingOnTicket,
+      },
+    });
   };
 
   if (!user) return null;
@@ -396,38 +635,108 @@ export default function ProfilePage() {
           </div>
 
           <InfoRow label="E-mail" value={email} theme={theme} />
-          <InfoRow
-            label="Formation"
-            value={user.organization ?? '—'}
-            theme={theme}
-          />
-          {session?.learningGoal && (
-            <InfoRow label="Objectif" value={session.learningGoal} theme={theme} />
-          )}
-          <InfoRow label="Blocs visés" value={ccps} theme={theme} />
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-              gap: '16px',
-              padding: '12px 0 0',
-            }}
-          >
-            <span style={{ fontSize: '12px', color: theme.textMuted }}>Statut</span>
-            <span
+          <div style={{ padding: '12px 0 0' }}>
+            <div
               style={{
-                fontSize: '11px',
-                fontWeight: 600,
-                color: '#30a46c',
-                background: dark ? 'rgba(48,164,108,0.15)' : 'rgba(48,164,108,0.12)',
-                padding: '3px 8px',
-                borderRadius: '4px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '16px',
               }}
             >
-              Actif
-            </span>
+              <span style={{ fontSize: '12px', color: theme.textMuted }}>Statut</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <StatusBadge status={currentStatus} dark={dark} />
+                <DndIconButton
+                  active={dndEnabled}
+                  onClick={toggleDnd}
+                  disabled={setDndMutation.isPending}
+                  theme={theme}
+                />
+              </div>
+            </div>
+            <p
+              style={{
+                margin: '6px 0 0',
+                fontSize: '11px',
+                color: theme.textMuted,
+                textAlign: 'right',
+              }}
+            >
+              {currentStatusMeta.description} · mis à jour automatiquement
+            </p>
           </div>
+        </Card>
+
+        <Card theme={theme}>
+          <SectionTitle
+            title="Parcours"
+            description="Formation et blocs visés."
+            theme={theme}
+          />
+
+          <form onSubmit={handleParcoursSubmit}>
+            <FieldLabel label="Formation" theme={theme}>
+              <SelectInput
+                value={formationId}
+                onChange={handleFormationChange}
+                theme={theme}
+              >
+                {FORMATIONS.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </SelectInput>
+            </FieldLabel>
+
+            <FieldLabel label="Blocs visés" theme={theme}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {availableCcps.map((ccp) => (
+                  <TogglePill
+                    key={ccp}
+                    label={ccp}
+                    selected={targetCcps.includes(ccp)}
+                    onClick={() => toggleCcp(ccp)}
+                    theme={theme}
+                    accent={selectedFormation?.accent}
+                  />
+                ))}
+              </div>
+            </FieldLabel>
+
+            <FieldLabel label="Objectif (optionnel)" theme={theme}>
+              <TextInput
+                value={learningGoal}
+                onChange={setLearningGoal}
+                placeholder="Ex. Valider le CCP2 avant la fin du trimestre"
+                theme={theme}
+              />
+            </FieldLabel>
+
+            {parcoursError && (
+              <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#ef4444' }}>
+                {parcoursError}
+              </p>
+            )}
+
+            {parcoursSuccess && (
+              <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#30a46c' }}>
+                Parcours mis à jour.
+              </p>
+            )}
+
+            <ProfileButton
+              type="submit"
+              variant="primary"
+              disabled={updateProfileMutation.isPending || !formationId}
+              theme={theme}
+            >
+              {updateProfileMutation.isPending
+                ? 'Enregistrement…'
+                : 'Enregistrer le parcours'}
+            </ProfileButton>
+          </form>
         </Card>
 
         <Card theme={theme}>
@@ -488,28 +797,18 @@ export default function ProfilePage() {
         <Card theme={theme}>
           <SectionTitle
             title="Compte"
-            description="Gérez votre parcours et votre session."
+            description="Déconnectez-vous de votre session."
             theme={theme}
           />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <ProfileLinkButton
-              to="/formation"
-              search={{ redirect: '/profil', change: '1' }}
-              theme={theme}
-            >
-              Changer de formation
-            </ProfileLinkButton>
-
-            <ProfileButton
-              variant="danger"
-              disabled={logoutMutation.isPending}
-              onClick={() => logoutMutation.mutate()}
-              theme={theme}
-            >
-              {logoutMutation.isPending ? 'Déconnexion…' : 'Se déconnecter'}
-            </ProfileButton>
-          </div>
+          <ProfileButton
+            variant="danger"
+            disabled={logoutMutation.isPending}
+            onClick={() => logoutMutation.mutate()}
+            theme={theme}
+          >
+            {logoutMutation.isPending ? 'Déconnexion…' : 'Se déconnecter'}
+          </ProfileButton>
         </Card>
       </div>
     </div>

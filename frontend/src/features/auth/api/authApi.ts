@@ -7,11 +7,16 @@ import {
 } from '../lib/authStorage';
 import { getFormationById } from '../data/formations';
 import { deriveLearnerProfileFromEmail } from '../lib/learnerProfile';
+import {
+  derivePresenceStatus,
+  type PresenceActivity,
+} from '../lib/presenceStatus';
 import type {
   AuthSession,
   ChangePasswordInput,
   LoginCredentials,
   SelectFormationInput,
+  UpdateProfileInput,
 } from '../types';
 
 function delay(ms: number): Promise<void> {
@@ -74,11 +79,71 @@ export async function selectFormation(
     ...session,
     formationId: formation.id,
     learningGoal: input.learningGoal?.trim() || undefined,
+    targetCcps: [...formation.ccps],
+    presenceStatus: session.presenceStatus ?? 'actif',
     user: {
       ...session.user,
       organization: formation.name,
       role: formation.roleLabel,
     },
+  };
+
+  setStoredSession(updated);
+  return updated;
+}
+
+export async function updateProfile(
+  input: UpdateProfileInput,
+): Promise<AuthSession> {
+  await delay(200);
+
+  const session = getStoredSession();
+  if (!session) {
+    throw new Error('Session expirée. Reconnectez-vous.');
+  }
+
+  const formation = getFormationById(input.formationId);
+  if (!formation) {
+    throw new Error('Formation invalide.');
+  }
+
+  const allowed = new Set(formation.ccps);
+  const targetCcps = input.targetCcps.filter((ccp) => allowed.has(ccp));
+  if (targetCcps.length === 0) {
+    throw new Error('Sélectionnez au moins un bloc visé.');
+  }
+
+  const updated: AuthSession = {
+    ...session,
+    formationId: formation.id,
+    learningGoal: input.learningGoal?.trim() || undefined,
+    targetCcps,
+    user: {
+      ...session.user,
+      organization: formation.name,
+      role: formation.roleLabel,
+    },
+  };
+
+  setStoredSession(updated);
+  return updated;
+}
+
+export async function setDndEnabled(
+  enabled: boolean,
+  activity: Omit<PresenceActivity, 'dndEnabled'>,
+): Promise<AuthSession> {
+  await delay(100);
+
+  const session = getStoredSession();
+  if (!session) {
+    throw new Error('Session expirée. Reconnectez-vous.');
+  }
+
+  const updated: AuthSession = {
+    ...session,
+    dndEnabled: enabled,
+    presenceStatus: derivePresenceStatus({ ...activity, dndEnabled: enabled }),
   };
 
   setStoredSession(updated);
