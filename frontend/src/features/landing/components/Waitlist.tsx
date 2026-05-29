@@ -1,113 +1,271 @@
+import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
-import type { Theme } from '../theme/landingTheme';
+import KyernalLogo from './KyernalLogo';
+import WaitlistForm from './WaitlistForm';
+import { THEMES } from '../theme/landingTheme';
 
-export default function Waitlist({ t }: { t: Theme }) {
-  const [email, setEmail] = useState('');
-  const [jobUrl, setJobUrl] = useState('');
-  const [sent, setSent] = useState(false);
+const NAV_ITEMS = [
+  { label: 'Fonctionnalités', hash: 'fonctionnalites' },
+  { label: 'Tarifs', hash: 'tarifs' },
+  { label: 'Pour les organismes', hash: 'organismes' },
+  { label: 'Docs', hash: 'docs' },
+] as const;
 
-  const handleSubmit = () => {
-    if (!email.includes('@')) return;
-    // TODO: POST /waitlist { email, jobUrl } sur le backend Go
-    setSent(true);
-  };
-
-  if (sent) {
-    return (
-      <div
-        style={{
-          padding: '16px 24px',
-          borderRadius: '10px',
-          border: '1px solid #30a46c33',
-          background: '#30a46c08',
-          maxWidth: '460px',
-          width: '100%',
-        }}
-      >
-        <span style={{ fontSize: '14px', color: '#30a46c', fontWeight: 500 }}>
-          ✓ Demande enregistrée. On revient vers vous.
-        </span>
-      </div>
-    );
-  }
+export default function Waitlist() {
+  const [mode, setMode] = useState<'dark' | 'light'>('light');
+  const t = THEMES[mode];
 
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        width: '100%',
-        maxWidth: '460px',
+        minHeight: '100vh',
+        background: t.bg,
+        color: t.text,
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'background 0.3s, color 0.3s',
       }}
     >
-      <input
-        type="url"
-        value={jobUrl}
-        onChange={(e) => setJobUrl(e.target.value)}
-        placeholder="Lien de l'offre d'emploi (optionnel)"
+      <div
         style={{
-          width: '100%',
-          height: '40px',
-          padding: '0 16px',
-          borderRadius: '7px',
-          border: `1px solid ${t.inputBorder}`,
-          background: t.inputBg,
-          color: t.text,
-          fontSize: '13px',
-          outline: 'none',
-          boxSizing: 'border-box',
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: `linear-gradient(${t.gridColor} 1px, transparent 1px), linear-gradient(90deg, ${t.gridColor} 1px, transparent 1px)`,
+          backgroundSize: '40px 40px',
+          opacity: 0.4,
+          zIndex: 0,
         }}
-        onFocus={(e) => (e.currentTarget.style.border = `1px solid ${t.textMuted}`)}
-        onBlur={(e) => (e.currentTarget.style.border = `1px solid ${t.inputBorder}`)}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          top: '-10%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '60vw',
+          height: '50vh',
+          background: `radial-gradient(ellipse, ${t.haloBg} 0%, transparent 70%)`,
+          filter: 'blur(40px)',
+          zIndex: 0,
+        }}
       />
 
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-          placeholder="votre@email.fr"
+      <nav
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          height: '56px',
+          borderBottom: `1px solid ${t.borderMuted}`,
+          background: t.navBg,
+          backdropFilter: 'blur(12px)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 28px',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Link
+          to="/"
           style={{
-            flex: 1,
-            height: '40px',
-            padding: '0 16px',
-            borderRadius: '7px',
-            border: `1px solid ${t.inputBorder}`,
-            background: t.inputBg,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            textDecoration: 'none',
             color: t.text,
-            fontSize: '13px',
-            outline: 'none',
           }}
-          onFocus={(e) => (e.currentTarget.style.border = `1px solid ${t.textMuted}`)}
-          onBlur={(e) => (e.currentTarget.style.border = `1px solid ${t.inputBorder}`)}
-        />
-        <button
-          onClick={handleSubmit}
-          style={{
-            height: '40px',
-            padding: '0 20px',
-            borderRadius: '7px',
-            background: t.btnPrimary,
-            color: t.btnPrimaryText,
-            border: 'none',
-            fontSize: '13px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            flexShrink: 0,
-            transition: 'opacity 0.15s',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
         >
-          Accès anticipé
-        </button>
-      </div>
+          <KyernalLogo size={20} dark={mode === 'light'} />
+          <span style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '-0.2px' }}>
+            Kyernal
+          </span>
+        </Link>
 
-      <span style={{ fontSize: '11px', color: t.textFaint, textAlign: 'center' }}>
-        TSSR · AIS · DevOps · Linux · Réseau
-      </span>
+        <div
+          style={{
+            display: 'none',
+            alignItems: 'center',
+            gap: '24px',
+          }}
+          className="waitlist-nav-links"
+        >
+          {NAV_ITEMS.map(({ label, hash }) => (
+            <Link
+              key={hash}
+              to="/landing"
+              hash={hash}
+              style={{
+                fontSize: '13px',
+                color: t.textSub,
+                textDecoration: 'none',
+                fontWeight: 500,
+              }}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Link
+            to="/login"
+            style={{
+              height: '32px',
+              padding: '0 14px',
+              borderRadius: '6px',
+              border: `1px solid ${t.border}`,
+              background: t.btnSecondaryBg,
+              color: t.btnSecondaryText,
+              fontSize: '13px',
+              fontWeight: 500,
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            Se connecter
+          </Link>
+          <button
+            type="button"
+            onClick={() => setMode((m) => (m === 'dark' ? 'light' : 'dark'))}
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '6px',
+              border: `1px solid ${t.border}`,
+              background: t.bgCard,
+              color: t.textMuted,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '14px',
+            }}
+            title={mode === 'dark' ? 'Mode clair' : 'Mode sombre'}
+          >
+            {mode === 'dark' ? '☀' : '◐'}
+          </button>
+        </div>
+      </nav>
+
+      <main
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '80px 24px',
+          textAlign: 'center',
+        }}
+      >
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '6px 14px',
+            borderRadius: '100px',
+            background: t.badgeBg,
+            border: `1px solid ${t.badgeBorder}`,
+            fontSize: '11px',
+            color: t.textSub,
+            marginBottom: '36px',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <div
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: '#30a46c',
+              boxShadow: '0 0 8px #30a46c',
+            }}
+          />
+          Simulation d'infrastructure · Accès anticipé
+        </div>
+
+        <h1
+          style={{
+            fontSize: 'clamp(38px, 6vw, 66px)',
+            fontWeight: 700,
+            letterSpacing: '-2.5px',
+            lineHeight: 1.02,
+            margin: '0 0 20px',
+            color: t.text,
+            maxWidth: '720px',
+          }}
+        >
+          Ne postulez plus à l'aveugle.
+          <br />
+          <span style={{ color: t.textMuted }}>Prouvez-le.</span>
+        </h1>
+
+        <p
+          style={{
+            fontSize: '16px',
+            color: t.textSub,
+            lineHeight: 1.65,
+            margin: '0 0 16px',
+            maxWidth: '500px',
+          }}
+        >
+          Klixy analyse l'offre d'emploi de vos rêves.
+        </p>
+        <p
+          style={{
+            fontSize: '16px',
+            color: t.textMuted,
+            lineHeight: 1.65,
+            margin: '0 0 52px',
+            maxWidth: '500px',
+          }}
+        >
+          Kyernal génère l'infrastructure exacte pour vous tester avant
+          l'entretien.
+        </p>
+
+        <WaitlistForm t={t} />
+      </main>
+
+      <footer
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10,
+          padding: '18px 32px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderTop: `1px solid ${t.borderMuted}`,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', opacity: 0.6 }}>
+          <KyernalLogo size={13} dark={mode === 'light'} />
+          <span style={{ fontSize: '11px', color: t.textMuted, fontWeight: 500 }}>
+            Kyernal
+          </span>
+        </div>
+        <span style={{ fontSize: '10px', color: t.textFaint, fontFamily: 'monospace' }}>
+          France · RGPD · 2026
+        </span>
+      </footer>
+
+      <style>{`
+        @media (min-width: 768px) {
+          .waitlist-nav-links {
+            display: flex !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

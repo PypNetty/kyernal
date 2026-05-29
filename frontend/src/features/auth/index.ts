@@ -7,3 +7,5 @@ export { useAuth } from './hooks/useAuth';
 export { useLogin } from './hooks/useLogin';
 export { useLogout } from './hooks/useLogout';
 export { useSelectFormation } from './hooks/useSelectFormation';
+export { useChangePassword } from './hooks/useChangePassword';
+export { useUpdateProfile } from './hooks/useUpdateProfile';

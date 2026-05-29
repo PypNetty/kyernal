@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useRouterState } from '@tanstack/react-router';
 import { useAuth } from '../../../auth';
+import { usePresenceSync } from '../../../auth/hooks/usePresenceSync';
 import { UserProfile } from '../context/types';
 import Sidebar from './Sidebar';
 
@@ -241,6 +242,8 @@ export default function Layout() {
   const { data: session, isLoading: authLoading } = useAuth();
   const currentUser: UserProfile | undefined = session?.user;
 
+  usePresenceSync(vmHost, showCourse, routerState.location.pathname);
+
   const border = dark ? '#1c1c1e' : '#e4e4e7';
   const bg = dark ? '#09090b' : '#fafafa';
   const text = dark ? '#f4f4f5' : '#09090b';
@@ -387,7 +390,7 @@ export default function Layout() {
               opacity: 0.8,
             }}
           >
-            Klixy Node
+            {currentUser.organization ?? 'Formation'}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>

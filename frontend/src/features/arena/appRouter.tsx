@@ -27,7 +27,7 @@ import {
   LoginPage,
   ProfilePage,
 } from '../auth';
-import { Landing } from '../landing';
+import { Landing, Waitlist } from '../landing';
 
 function RootPage() {
   return <Outlet />;
@@ -175,10 +175,24 @@ const arenaLayoutRoute = createRoute({
   },
 });
 
-const landingRoute = createRoute({
+const waitlistRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  component: Waitlist,
+});
+
+const landingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/landing',
   component: Landing,
+});
+
+const waitlistLegacyRedirectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/waitlist',
+  beforeLoad: () => {
+    throw redirect({ to: '/' });
+  },
 });
 
 const loginRoute = createRoute({
@@ -287,7 +301,9 @@ const profileRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
+  waitlistRoute,
   landingRoute,
+  waitlistLegacyRedirectRoute,
   loginRoute,
   formationRoute,
   arenaLayoutRoute.addChildren([
