@@ -1,13 +1,10 @@
 import type { UserProfile } from '../../arena/layout/context/types';
 
-export const DEFAULT_ORGANIZATION = 'Klixy Formation';
-
 /** Profil apprenant de démonstration aligné avec les données métier (inbox, projets). */
 export const DEFAULT_LEARNER_PROFILE: UserProfile = {
   name: 'Henryck Paris',
   initials: 'HP',
-  role: 'Apprenant · DevOps Systèmes & Réseaux',
-  organization: DEFAULT_ORGANIZATION,
+  role: 'Apprenant',
 };
 
 const DEMO_EMAIL_PATTERN =
@@ -51,7 +48,6 @@ export function deriveLearnerProfileFromEmail(email: string): UserProfile {
     name,
     initials: buildInitials(name),
     role: DEFAULT_LEARNER_PROFILE.role,
-    organization: DEFAULT_ORGANIZATION,
   };
 }
 
@@ -65,10 +61,14 @@ export function normalizeStoredUser(user: UserProfile): UserProfile {
     return { ...DEFAULT_LEARNER_PROFILE };
   }
 
+  const staleOrganization =
+    user.organization === 'Klixy Formation' ||
+    user.organization === 'Kyernal Formation';
+
   return {
     ...DEFAULT_LEARNER_PROFILE,
     ...user,
-    organization: user.organization ?? DEFAULT_ORGANIZATION,
+    organization: staleOrganization ? undefined : user.organization,
     role: user.role?.trim() || DEFAULT_LEARNER_PROFILE.role,
   };
 }

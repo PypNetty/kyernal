@@ -20,7 +20,13 @@ import SkillTreePanel from './skills/components/SkillTreePanel';
 import { DocsPanel } from './docs';
 import TicketPanel from './tickets/components/TicketPanel';
 import TerminalPanel from './tickets/components/TerminalPanel';
-import { getStoredSession, LoginPage, ProfilePage } from '../auth';
+import {
+  FormationSelectPage,
+  getStoredSession,
+  hasSelectedFormation,
+  LoginPage,
+  ProfilePage,
+} from '../auth';
 import { Landing } from '../landing';
 
 function RootPage() {
@@ -148,13 +154,22 @@ const arenaLayoutRoute = createRoute({
   id: 'arena-layout',
   component: Layout,
   beforeLoad: ({ location }) => {
-    if (!getStoredSession()) {
-      const redirectTo = location.pathname + location.search;
+    const session = getStoredSession();
+    const safeRedirect = location.href.startsWith('/')
+      ? location.href
+      : '/inbox';
+
+    if (!session) {
       throw redirect({
         to: '/login',
-        search: {
-          redirect: redirectTo.startsWith('/') ? redirectTo : '/inbox',
-        },
+        search: { redirect: safeRedirect },
+      });
+    }
+
+    if (!hasSelectedFormation(session)) {
+      throw redirect({
+        to: '/formation',
+        search: { redirect: safeRedirect },
       });
     }
   },
@@ -176,11 +191,39 @@ const loginRoute = createRoute({
         : '/inbox',
   }),
   beforeLoad: ({ search }) => {
-    if (getStoredSession()) {
+    const session = getStoredSession();
+    if (!session) return;
+    if (hasSelectedFormation(session)) {
+      throw redirect({ to: search.redirect });
+    }
+    throw redirect({ to: '/formation', search: { redirect: search.redirect } });
+  },
+  component: LoginPage,
+});
+
+const formationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/formation',
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect:
+      typeof search.redirect === 'string' && search.redirect.startsWith('/')
+        ? search.redirect
+        : '/inbox',
+    change: search.change === '1' || search.change === 1 || search.change === true,
+  }),
+  beforeLoad: ({ search }) => {
+    const session = getStoredSession();
+    if (!session) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: search.redirect },
+      });
+    }
+    if (hasSelectedFormation(session) && !search.change) {
       throw redirect({ to: search.redirect });
     }
   },
-  component: LoginPage,
+  component: FormationSelectPage,
 });
 
 const inboxRoute = createRoute({
@@ -191,11 +234,15 @@ const inboxRoute = createRoute({
 const ticketsRoute = createRoute({
   getParentRoute: () => arenaLayoutRoute,
   path: '/tickets',
+});
+const ticketsIndexRoute = createRoute({
+  getParentRoute: () => ticketsRoute,
+  path: '/',
   component: MyTicketsPage,
 });
 const ticketDetailRoute = createRoute({
-  getParentRoute: () => arenaLayoutRoute,
-  path: '/tickets/$incidentId',
+  getParentRoute: () => ticketsRoute,
+  path: '$incidentId',
   component: TicketDetailPage,
 });
 const reviewsRoute = createRoute({
@@ -242,10 +289,10 @@ const profileRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   landingRoute,
   loginRoute,
+  formationRoute,
   arenaLayoutRoute.addChildren([
     inboxRoute,
-    ticketsRoute,
-    ticketDetailRoute,
+    ticketsRoute.addChildren([ticketsIndexRoute, ticketDetailRoute]),
     reviewsRoute,
     pulseRoute,
     skillsRoute,

@@ -13,7 +13,11 @@ export function useLogin() {
     mutationFn: (credentials: LoginCredentials) => login(credentials),
     onSuccess: (session) => {
       queryClient.setQueryData(authKeys.session(), session);
-      void navigate({ to: redirect });
+      if (session.formationId) {
+        void navigate({ to: redirect });
+      } else {
+        void navigate({ to: '/formation', search: { redirect } });
+      }
     },
   });
 }

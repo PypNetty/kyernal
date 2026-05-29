@@ -1,6 +1,7 @@
+import { Link } from '@tanstack/react-router';
 import { useContext } from 'react';
 import { LayoutCtx } from '../../arena/layout/components/Layout';
-import { APPRENANT_CCPS } from '../../arena/resources/data/resourcesData';
+import { getFormationById } from '../data/formations';
 import { useAuth } from '../hooks/useAuth';
 import { useLogout } from '../hooks/useLogout';
 
@@ -54,6 +55,10 @@ export default function ProfilePage() {
 
   const user = session?.user;
   const email = session?.email ?? '—';
+  const formation = session?.formationId
+    ? getFormationById(session.formationId)
+    : undefined;
+  const ccps = formation?.ccps.join(' · ') ?? '—';
 
   const bg = dark ? '#0e0f11' : '#ffffff';
   const border = dark ? '#27282b' : '#e8e8e5';
@@ -147,16 +152,26 @@ export default function ProfilePage() {
             textMuted={textMuted}
           />
           <InfoRow
-            label="Organisation"
+            label="Formation"
             value={user.organization ?? '—'}
             dark={dark}
             border={border}
             textMain={textMain}
             textMuted={textMuted}
           />
+          {session?.learningGoal && (
+            <InfoRow
+              label="Objectif"
+              value={session.learningGoal}
+              dark={dark}
+              border={border}
+              textMain={textMain}
+              textMuted={textMuted}
+            />
+          )}
           <InfoRow
-            label="Parcours"
-            value={APPRENANT_CCPS.join(' · ')}
+            label="Blocs visés"
+            value={ccps}
             dark={dark}
             border={border}
             textMain={textMain}
@@ -186,6 +201,20 @@ export default function ProfilePage() {
             </span>
           </div>
         </div>
+
+        <Link
+          to="/formation"
+          search={{ redirect: '/profil', change: '1' }}
+          style={{
+            display: 'inline-block',
+            marginBottom: '12px',
+            fontSize: '13px',
+            color: '#0055e5',
+            textDecoration: 'none',
+          }}
+        >
+          Changer de formation
+        </Link>
 
         <button
           type="button"

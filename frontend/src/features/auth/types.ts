@@ -9,4 +9,11 @@ export interface AuthSession {
   token: string;
   email: string;
   user: UserProfile;
+  formationId?: string;
+  learningGoal?: string;
+}
+
+export interface SelectFormationInput {
+  formationId: string;
+  learningGoal?: string;
 }

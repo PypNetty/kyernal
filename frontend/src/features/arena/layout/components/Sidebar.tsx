@@ -301,7 +301,7 @@ export default function Sidebar({
           K
         </div>
         <span style={{ fontSize: '13px', fontWeight: 600, color: textMain }}>
-          {user.organization ?? 'Kyernal'}
+          {user.organization ?? 'Formation'}
         </span>
         <span
           style={{ marginLeft: 'auto', color: textMuted, fontSize: '10px' }}
